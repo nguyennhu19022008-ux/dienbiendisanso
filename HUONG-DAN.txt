@@ -1,0 +1,56 @@
+ĐIỆN BIÊN 3D STEAM — BẢN WINDOWS KHÔNG CẦN CÀI ĐẶT
+=====================================================
+
+YÊU CẦU
+
+- Windows 10 hoặc Windows 11.
+- Chrome hoặc Microsoft Edge mới.
+- Internet khi mở các tour 3D/360° trực tuyến.
+- Không cần Visual Studio Code, Node.js hoặc npm.
+
+CÁCH CHẠY
+
+1. Giải nén TOÀN BỘ tệp ZIP vào một thư mục mới.
+   Không chạy trực tiếp khi tệp vẫn còn nằm bên trong ZIP.
+2. Nhấp đúp START-WEBSITE.bat.
+3. Chờ vài giây. Trình duyệt mặc định sẽ tự mở website.
+4. Giữ cửa sổ màu đen đang chạy trong suốt thời gian sử dụng.
+
+CÁCH DỪNG
+
+- Nhấn Ctrl+C hoặc đóng cửa sổ máy chủ; hoặc
+- Nhấp đúp STOP-WEBSITE.bat.
+
+ĐỊA CHỈ LOCAL
+
+Website ưu tiên http://127.0.0.1:8787/.
+Nếu cổng 8787 đang bận, chương trình tự chọn một cổng trống từ 8788 đến 8807.
+Địa chỉ thực tế luôn được hiển thị trong cửa sổ máy chủ.
+
+NẾU WEBSITE KHÔNG TỰ MỞ
+
+1. Nhìn địa chỉ màu xanh trong cửa sổ máy chủ.
+2. Sao chép địa chỉ đó vào Chrome hoặc Edge.
+
+NẾU TOUR 3D KHÔNG HIỆN
+
+1. Kiểm tra kết nối Internet.
+2. Dùng Chrome/Edge và bật tăng tốc phần cứng (WebGL).
+3. Nhấn "Tải lại" trong khung tour.
+4. Nếu máy chủ tour không cho nhúng, nhấn "Mở cửa sổ riêng ↗".
+
+LƯU Ý AN TOÀN
+
+- Máy chủ chỉ lắng nghe trên 127.0.0.1, tức là chỉ máy tính hiện tại truy cập được.
+- Gói không cài phần mềm, không cần quyền quản trị và không gửi tệp trong máy ra ngoài.
+- Các tour 3D là nội dung trực tuyến từ Cổng thông tin du lịch Điện Biên/eGAL.
+
+NỘI DUNG BẢN THỬ
+
+- 8 không gian 3D/360°: Mường Phăng, Đồi A1, Đồi D1, Thành Bản Phủ,
+  Nghĩa trang A1, Him Lam, Độc Lập và Tông Khao.
+- Bộ lọc tour, nhiệm vụ quan sát và hành trình bốn chặng.
+- Timeline chiến dịch, bản đồ 10 hotspot và phòng học STEAM.
+- Nội dung H01–H10 đang ở trạng thái PROTOTYPE, chưa phải dữ liệu lịch sử đã khóa.
+
+Phiên bản đóng gói: 17/08/2026

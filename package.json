@@ -1,0 +1,27 @@
+{
+  "name": "dien-bien-3d-steam",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Điện Biên 3D — STEAM Heritage Lab & Digital Museum",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "serve ."
+  },
+  "keywords": [
+    "dien-bien-phu",
+    "steam",
+    "digital-heritage",
+    "3d-tour",
+    "interactive-history",
+    "vietnam"
+  ],
+  "author": "VuongGia <nguyennhu19022008@gmail.com>",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "serve": "^14.2.4",
+    "vite": "^5.4.10"
+  }
+}
