@@ -6,9 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/build_dist.cjs",
     "preview": "vite preview",
-    "serve": "serve ."
+    "serve": "serve .",
+    "test": "node tests/run_all_tests.cjs"
   },
   "keywords": [
     "dien-bien-phu",

@@ -232,3 +232,269 @@ suite('Tier 1: Feature Coverage — Web Audio API Synthesizer Contract', () => {
     audio.playSuccess();
   });
 });
+
+suite('Tier 1: Feature Coverage — Production Build & dist/ Integrity', () => {
+  const DIST_DIR = path.join(PROJECT_ROOT, 'dist');
+  const REQUIRED_ASSETS = [
+    'site_data.js',
+    'site_audio.js',
+    'interactive_engine.js',
+    'site_styles.css',
+    'interactive_enhancements.css'
+  ];
+  const REQUIRED_IMAGES = [
+    'd1.webp',
+    'him-lam-aerial.webp',
+    'muong-phang.webp',
+    'a1.webp',
+    'a1-cemetery.webp',
+    'him-lam-memorial.webp'
+  ];
+  const REQUIRED_SVGS = ['favicon.svg', 'file.svg', 'globe.svg', 'window.svg'];
+
+  test('npm run build exits with code 0 and populates dist/ directory', () => {
+    execSync('npm run build', { cwd: PROJECT_ROOT, stdio: 'pipe' });
+    assert(fs.existsSync(DIST_DIR), 'dist/ directory must exist after build');
+    assert(fs.existsSync(path.join(DIST_DIR, 'index.html')), 'dist/index.html must exist');
+  });
+
+  test('dist/assets/ contains all 5 scripts and stylesheets', () => {
+    REQUIRED_ASSETS.forEach(asset => {
+      const p = path.join(DIST_DIR, 'assets', asset);
+      assert(fs.existsSync(p), `dist/assets/${asset} must exist`);
+      assertGreaterThan(fs.statSync(p).size, 0, `dist/assets/${asset} must not be empty`);
+    });
+  });
+
+  test('dist/images/ contains all 6 WebP images with RIFF/WEBP magic bytes', () => {
+    REQUIRED_IMAGES.forEach(img => {
+      const p = path.join(DIST_DIR, 'images', img);
+      assert(fs.existsSync(p), `dist/images/${img} must exist`);
+      assertGreaterThan(fs.statSync(p).size, 1000, `dist/images/${img} must be > 1KB`);
+
+      const fd = fs.openSync(p, 'r');
+      const buf = Buffer.alloc(12);
+      fs.readSync(fd, buf, 0, 12, 0);
+      fs.closeSync(fd);
+
+      assertEqual(buf.toString('ascii', 0, 4), 'RIFF', `${img} must have RIFF header`);
+      assertEqual(buf.toString('ascii', 8, 12), 'WEBP', `${img} must have WEBP format`);
+    });
+  });
+
+  test('dist/ contains all 4 root SVGs with valid XML markup', () => {
+    REQUIRED_SVGS.forEach(svg => {
+      const p = path.join(DIST_DIR, svg);
+      assert(fs.existsSync(p), `dist/${svg} must exist`);
+      const content = fs.readFileSync(p, 'utf8');
+      assertIncludes(content, '<svg', `dist/${svg} must contain <svg>`);
+      assertIncludes(content, '</svg>', `dist/${svg} must contain </svg>`);
+    });
+  });
+
+  test('index.html references ?v=20260424 on all 5 assets in assets/', () => {
+    const html = fs.readFileSync(path.join(PROJECT_ROOT, 'index.html'), 'utf8');
+    REQUIRED_ASSETS.forEach(asset => {
+      assertIncludes(html, `assets/${asset}?v=20260424`, `index.html must reference assets/${asset}?v=20260424`);
+    });
+  });
+
+  test('index.html iframe allow attribute replaces vr with xr-spatial-tracking; fullscreen', () => {
+    const html = fs.readFileSync(path.join(PROJECT_ROOT, 'index.html'), 'utf8');
+    assert(!/\ballow\s*=\s*["'][^"']*\bvr\b[^"']*["']/i.test(html), 'Must not contain deprecated vr in any allow attribute');
+    assertIncludes(html, 'xr-spatial-tracking; fullscreen', 'Must contain xr-spatial-tracking; fullscreen');
+  });
+
+  test('vercel.json specifies buildCommand, outputDirectory, and safe assets Cache-Control', () => {
+    const vercelConfig = JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'vercel.json'), 'utf8'));
+    assertEqual(vercelConfig.buildCommand, 'npm run build', 'vercel.json buildCommand must be npm run build');
+    assertEqual(vercelConfig.outputDirectory, 'dist', 'vercel.json outputDirectory must be dist');
+
+    const assetHeader = vercelConfig.headers.find(h => h.source === '/assets/(.*)');
+    assert(assetHeader, 'vercel.json must have headers for /assets/(.*)');
+    const cacheControl = assetHeader.headers.find(h => h.key === 'Cache-Control');
+    assert(cacheControl, 'Must specify Cache-Control header for /assets/(.*)');
+    assert(!cacheControl.value.includes('immutable'), 'Cache-Control for assets must NOT be immutable');
+    assertIncludes(cacheControl.value, 'public, max-age=0, must-revalidate', 'Cache-Control must be safe revalidation');
+  });
+
+  test('dist/assets/ contains strictly the 5 required assets without orphaned files', () => {
+    const files = fs.readdirSync(path.join(DIST_DIR, 'assets'));
+    assertEqual(files.length, REQUIRED_ASSETS.length, 'dist/assets/ must contain exactly 5 assets');
+    REQUIRED_ASSETS.forEach(asset => {
+      assert(files.includes(asset), `dist/assets/ must include ${asset}`);
+    });
+  });
+
+  test('scripts/build_dist.cjs verifyDist() validates production build and passes all checks', () => {
+    const { verifyDist } = require('../scripts/build_dist.cjs');
+    const res = verifyDist(DIST_DIR, { projectRoot: PROJECT_ROOT, silent: true });
+    assertEqual(res.success, true, 'verifyDist must succeed');
+    assertEqual(res.totalChecked, 27, 'verifyDist must pass all 27 verification checks');
+  });
+
+  test('production dist/ artifacts load and initialize cleanly in DOM harness', () => {
+    const distEnv = createEnvironment(DIST_DIR);
+    const scripts = distEnv.loadScripts();
+    assert(scripts.SiteAudio, 'dist/assets/site_audio.js must export SiteAudio');
+    assert(distEnv.window.TOURS_DATA, 'dist/assets/site_data.js must export TOURS_DATA');
+    assertEqual(distEnv.window.TOURS_DATA.length, 8, 'TOURS_DATA must contain 8 tours');
+  });
+
+  test('vite.config.js fallback plugin closeBundle hook populates and verifies dist/', async () => {
+    const viteConfig = await import('../vite.config.js');
+    const plugin = viteConfig.default.plugins.find(p => p.name === 'copy-static-dist-assets');
+    assert(plugin, 'vite.config.js must include copy-static-dist-assets plugin');
+    assertEqual(typeof plugin.closeBundle, 'function', 'plugin must implement closeBundle hook');
+
+    // Execute the hook directly
+    plugin.closeBundle();
+
+    const { verifyDist } = require('../scripts/build_dist.cjs');
+    const res = verifyDist(DIST_DIR, { projectRoot: PROJECT_ROOT, silent: true });
+    assertEqual(res.success, true, 'verifyDist must succeed after vite closeBundle');
+  });
+
+  test('real vite build CLI execution populates verified dist/ without orphaned assets', () => {
+    execSync('npx vite build', { cwd: PROJECT_ROOT, stdio: 'pipe' });
+    const { verifyDist } = require('../scripts/build_dist.cjs');
+    const res = verifyDist(DIST_DIR, { projectRoot: PROJECT_ROOT, silent: true });
+    assertEqual(res.success, true, 'verifyDist must succeed after npx vite build');
+
+    const files = fs.readdirSync(path.join(DIST_DIR, 'assets'));
+    assertEqual(files.length, REQUIRED_ASSETS.length, 'dist/assets/ must contain exactly 5 assets after vite build');
+    REQUIRED_ASSETS.forEach(asset => {
+      assert(files.includes(asset), `dist/assets/ must include ${asset}`);
+    });
+  });
+
+  test('build handles Windows CWD inside dist/ without EPERM errors', () => {
+    const { build, verifyDist } = require('../scripts/build_dist.cjs');
+    const initialCwd = process.cwd();
+    try {
+      process.chdir(DIST_DIR);
+      build({ projectRoot: PROJECT_ROOT, distDir: DIST_DIR, silent: true });
+    } finally {
+      process.chdir(initialCwd);
+    }
+    const res = verifyDist(DIST_DIR, { projectRoot: PROJECT_ROOT, silent: true });
+    assertEqual(res.success, true, 'dist must be valid after building with CWD in dist');
+  });
+
+  test('extraneous files in source assets/ do not leak into dist/assets/', () => {
+    const { build, verifyDist } = require('../scripts/build_dist.cjs');
+    const dummyFile = path.join(PROJECT_ROOT, 'assets', '__test_dummy__.bak');
+    try {
+      fs.writeFileSync(dummyFile, 'transient backup file');
+      build({ projectRoot: PROJECT_ROOT, distDir: DIST_DIR, silent: true });
+      const distFiles = fs.readdirSync(path.join(DIST_DIR, 'assets'));
+      assert(!distFiles.includes('__test_dummy__.bak'), 'Transient backup file must not be copied to dist/assets');
+      assertEqual(distFiles.length, REQUIRED_ASSETS.length, 'dist/assets/ count must strictly equal 5');
+    } finally {
+      if (fs.existsSync(dummyFile)) fs.unlinkSync(dummyFile);
+    }
+    const res = verifyDist(DIST_DIR, { projectRoot: PROJECT_ROOT, silent: true });
+    assertEqual(res.success, true, 'dist must remain valid');
+  });
+
+  test('verifyDist rejects unversioned asset references in index.html', () => {
+    const { verifyDist } = require('../scripts/build_dist.cjs');
+    const indexPath = path.join(DIST_DIR, 'index.html');
+    const originalHtml = fs.readFileSync(indexPath, 'utf8');
+    try {
+      fs.writeFileSync(indexPath, originalHtml + '\n<script src="assets/site_data.js"></script>');
+      let caught = false;
+      try {
+        verifyDist(DIST_DIR, { projectRoot: PROJECT_ROOT, silent: true });
+      } catch (err) {
+        caught = true;
+        assertIncludes(err.message, 'unversioned asset reference', 'Error must cite unversioned asset reference');
+      }
+      assert(caught, 'verifyDist must throw when index.html contains unversioned asset reference');
+    } finally {
+      fs.writeFileSync(indexPath, originalHtml);
+    }
+  });
+
+  test('verifyDist rejects orphaned files in dist/images/ and root dist/', () => {
+    const { verifyDist } = require('../scripts/build_dist.cjs');
+    const orphanImg = path.join(DIST_DIR, 'images', '__orphan_img__.webp');
+    const orphanRoot = path.join(DIST_DIR, '__orphan_root__.txt');
+
+    try {
+      // Test orphan image rejection
+      fs.writeFileSync(orphanImg, 'dummy data');
+      let caughtImg = false;
+      try {
+        verifyDist(DIST_DIR, { projectRoot: PROJECT_ROOT, silent: true });
+      } catch (err) {
+        caughtImg = true;
+        assertIncludes(err.message, 'Unexpected or orphaned file in dist/images', 'Must cite orphaned image');
+      }
+      assert(caughtImg, 'verifyDist must reject orphaned file in dist/images/');
+    } finally {
+      if (fs.existsSync(orphanImg)) fs.unlinkSync(orphanImg);
+    }
+
+    try {
+      // Test orphan root entry rejection
+      fs.writeFileSync(orphanRoot, 'dummy data');
+      let caughtRoot = false;
+      try {
+        verifyDist(DIST_DIR, { projectRoot: PROJECT_ROOT, silent: true });
+      } catch (err) {
+        caughtRoot = true;
+        assertIncludes(err.message, 'Unexpected or orphaned entry in root dist', 'Must cite orphaned root entry');
+      }
+      assert(caughtRoot, 'verifyDist must reject orphaned entry in root dist/');
+    } finally {
+      if (fs.existsSync(orphanRoot)) fs.unlinkSync(orphanRoot);
+    }
+  });
+
+  test('build correctly resolves custom projectRoot without defaulting to PROJECT_ROOT', () => {
+    const os = require('os');
+    const { build } = require('../scripts/build_dist.cjs');
+    const tmpProj = fs.mkdtempSync(path.join(os.tmpdir(), 'db_proj_'));
+
+    try {
+      fs.copyFileSync(path.join(PROJECT_ROOT, 'index.html'), path.join(tmpProj, 'index.html'));
+      fs.cpSync(path.join(PROJECT_ROOT, 'assets'), path.join(tmpProj, 'assets'), { recursive: true });
+      fs.cpSync(path.join(PROJECT_ROOT, 'images'), path.join(tmpProj, 'images'), { recursive: true });
+      fs.copyFileSync(path.join(PROJECT_ROOT, 'favicon.svg'), path.join(tmpProj, 'favicon.svg'));
+      fs.copyFileSync(path.join(PROJECT_ROOT, 'file.svg'), path.join(tmpProj, 'file.svg'));
+      fs.copyFileSync(path.join(PROJECT_ROOT, 'globe.svg'), path.join(tmpProj, 'globe.svg'));
+      fs.copyFileSync(path.join(PROJECT_ROOT, 'window.svg'), path.join(tmpProj, 'window.svg'));
+      fs.copyFileSync(path.join(PROJECT_ROOT, 'vercel.json'), path.join(tmpProj, 'vercel.json'));
+
+      const res = build({ projectRoot: tmpProj, silent: true });
+      assertEqual(res.outDir, path.join(tmpProj, 'dist'), 'outDir must resolve inside custom projectRoot');
+      assert(fs.existsSync(path.join(tmpProj, 'dist', 'index.html')), 'dist/index.html must exist in custom projectRoot');
+      assertEqual(res.verification.totalChecked, 27, 'All 27 checks must pass in custom projectRoot');
+    } finally {
+      fs.rmSync(tmpProj, { recursive: true, force: true });
+    }
+  });
+
+  test('concurrent builds executed in parallel processes succeed cleanly with atomic locking', () => {
+    const { spawn } = require('child_process');
+    const scriptPath = path.join(PROJECT_ROOT, 'scripts', 'build_dist.cjs');
+
+    const procs = [];
+    for (let i = 0; i < 6; i++) {
+      procs.push(new Promise((resolve, reject) => {
+        const p = spawn('node', [scriptPath, '--silent']);
+        let errOut = '';
+        p.stderr.on('data', d => errOut += d);
+        p.on('close', code => {
+          if (code === 0) resolve();
+          else reject(new Error(`Worker ${i} failed with exit code ${code}: ${errOut}`));
+        });
+      }));
+    }
+
+    return Promise.all(procs);
+  });
+});
+
+
