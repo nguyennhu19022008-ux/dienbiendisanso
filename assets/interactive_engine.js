@@ -14,13 +14,7 @@
   const el = {};
 
   function cacheElements() {
-    el.slide0 = document.getElementById('slide0-overlay');
-    el.copyrightCard = document.getElementById('copyrightCard');
-    el.floatingReopen = document.getElementById('floatingReopen');
-    el.closeBtn = document.getElementById('closeBtn');
-    el.reopenBtn = document.getElementById('reopenBtn');
-    el.startBtn = document.getElementById('startBtn');
-    el.quickEnterBtn = document.getElementById('quickEnterBtn');
+    // Slide 0 removed - Site starts directly
     
     // Viewer elements
     el.viewerCover = document.querySelector('.viewer-cover');
@@ -64,67 +58,197 @@
     el.headerCta = document.querySelector('.header-cta');
   }
 
-  // --- 1. SLIDE 0 / PAGE 0 CONTROLLER ---
-  function initSlide0() {
-    if (!el.slide0) return;
+  // --- 1. VISUAL EFFECTS & ANIMATIONS CONTROLLERS ---
 
-    function enterMainSite() {
-      if (window.SiteAudio) window.SiteAudio.playSuccess();
-      el.slide0.classList.add('slide0-exit');
-      setTimeout(() => {
-        el.slide0.style.display = 'none';
-        isPage0Active = false;
-        document.body.classList.remove('lock-scroll');
-      }, 500);
+  // A. Hero Amber Sparks & Embers Canvas
+  function initHeroSparks() {
+    const canvas = document.getElementById('hero-sparks-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let width = 0;
+    let height = 0;
+
+    function resize() {
+      const parent = canvas.parentElement;
+      width = canvas.width = parent ? parent.offsetWidth : window.innerWidth;
+      height = canvas.height = parent ? parent.offsetHeight : 600;
     }
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
 
-    if (el.closeBtn) {
-      el.closeBtn.addEventListener('click', () => {
-        if (window.SiteAudio) window.SiteAudio.playClick();
-        if (el.copyrightCard) el.copyrightCard.style.display = 'none';
-        if (el.floatingReopen) el.floatingReopen.style.display = 'flex';
+    // Embers particle pool (35 particles for silky 60fps performance)
+    const particleCount = 35;
+    const particles = [];
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        size: Math.random() * 2.5 + 0.8,
+        speedY: Math.random() * 0.45 + 0.2,
+        speedX: (Math.random() - 0.5) * 0.3,
+        opacity: Math.random() * 0.7 + 0.2,
+        pulseSpeed: Math.random() * 0.03 + 0.01,
+        angle: Math.random() * Math.PI * 2
       });
     }
 
-    if (el.reopenBtn) {
-      el.reopenBtn.addEventListener('click', () => {
-        if (window.SiteAudio) window.SiteAudio.playClick();
-        if (el.copyrightCard) el.copyrightCard.style.display = 'block';
-        if (el.floatingReopen) el.floatingReopen.style.display = 'none';
-      });
-    }
+    function render() {
+      ctx.clearRect(0, 0, width, height);
 
-    if (el.startBtn) el.startBtn.addEventListener('click', enterMainSite);
-    if (el.quickEnterBtn) el.quickEnterBtn.addEventListener('click', enterMainSite);
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.y -= p.speedY;
+        p.x += Math.sin(p.angle) * 0.35 + p.speedX;
+        p.angle += p.pulseSpeed;
 
-    // Keyboard support: Enter / Space / ArrowRight
-    window.addEventListener('keydown', (e) => {
-      if (!isPage0Active) return;
-      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
-        enterMainSite();
-      }
-    });
+        const currentOpacity = Math.max(0.05, p.opacity * (0.8 + 0.2 * Math.sin(p.angle * 2)));
 
-    // Copy buttons
-    document.querySelectorAll('.copy-trigger').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const text = btn.getAttribute('data-copy');
-        if (text) {
-          navigator.clipboard.writeText(text).then(() => {
-            if (window.SiteAudio) window.SiteAudio.playClick();
-            const originalText = btn.textContent;
-            btn.textContent = 'ĐÃ CHÉP';
-            btn.classList.add('copied');
-            setTimeout(() => {
-              btn.textContent = originalText;
-              btn.classList.remove('copied');
-            }, 2000);
-          });
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(229, 201, 133, ${currentOpacity})`;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = 'rgba(229, 201, 133, 0.6)';
+        ctx.fill();
+
+        if (p.y < -10 || p.x < -10 || p.x > width + 10) {
+          p.x = Math.random() * width;
+          p.y = height + 10;
+          p.opacity = Math.random() * 0.7 + 0.2;
         }
+      }
+
+      requestAnimationFrame(render);
+    }
+    render();
+  }
+
+  // B. 3D Card Tilt & Interactive Cursor Spotlight
+  function init3DCardTilt() {
+    const targets = document.querySelectorAll('.tour-card, .route-chapters article, .steam-cards article, .gallery-grid figure, .inquiry-card');
+    
+    targets.forEach(card => {
+      card.classList.add('tilt-card');
+
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Dynamic Spotlight coordinates
+        card.style.setProperty('--spotlight-x', `${x}px`);
+        card.style.setProperty('--spotlight-y', `${y}px`);
+
+        // 3D Perspective Rotation
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -6;
+        const rotateY = ((x - centerX) / centerX) * 6;
+
+        card.style.transform = `perspective(800px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-4px)`;
+      });
+
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px)';
       });
     });
   }
+
+  // C. Animated Number Counters
+  function initCounterAnimation() {
+    const counters = document.querySelectorAll('[data-counter-target]');
+    if (!counters.length) return;
+
+    const observer = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const target = parseInt(el.getAttribute('data-counter-target'), 10) || 0;
+          const format2Digit = el.getAttribute('data-counter-format') === '2digit';
+          const duration = 1400;
+          const startTime = performance.now();
+
+          function updateCounter(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const currentVal = Math.floor(easeOut * target);
+
+            el.textContent = format2Digit && currentVal < 10 ? `0${currentVal}` : `${currentVal}`;
+
+            if (progress < 1) {
+              requestAnimationFrame(updateCounter);
+            } else {
+              el.textContent = format2Digit && target < 10 ? `0${target}` : `${target}`;
+            }
+          }
+
+          requestAnimationFrame(updateCounter);
+          obs.unobserve(el);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    counters.forEach(c => observer.observe(c));
+  }
+
+  // D. Scroll-Driven Stagger Reveal
+  function initScrollReveal() {
+    const revealElements = document.querySelectorAll(
+      '.split-heading, .tour-stage, .route-chapters, .map-workspace, .steam-cards, .gallery-grid, .timeline-milestone'
+    );
+
+    revealElements.forEach(item => {
+      item.classList.add('reveal-on-scroll');
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+    revealElements.forEach(el => observer.observe(el));
+  }
+
+  // E. Back To Top HUD with Circular Scroll Progress
+  function initBackToTop() {
+    const btn = document.getElementById('backToTopBtn');
+    const circle = document.getElementById('scrollProgressCircle');
+    const perimeter = 119.38;
+
+    function onScroll() {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const progress = docHeight > 0 ? Math.min(Math.max(scrollTop / docHeight, 0), 1) : 0;
+
+      if (circle) {
+        circle.style.strokeDashoffset = (perimeter - perimeter * progress).toString();
+      }
+
+      if (btn) {
+        if (scrollTop > 350) {
+          btn.classList.add('visible');
+        } else {
+          btn.classList.remove('visible');
+        }
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    if (btn) {
+      btn.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+  }
+
 
   // --- 2. TOUR 3D VIEWER CONTROLLER ---
   function updateTourView(index, playSound = true) {
@@ -892,7 +1016,11 @@
   // --- 8. INITIALIZE EVERYTHING ON DOM READY ---
   function init() {
     cacheElements();
-    initSlide0();
+    initHeroSparks();
+    init3DCardTilt();
+    initCounterAnimation();
+    initScrollReveal();
+    initBackToTop();
     initTourViewer();
     initTacticalMap();
     initRouteModals();
