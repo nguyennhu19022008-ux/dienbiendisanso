@@ -28,8 +28,9 @@
     el.missionCard = document.querySelector('.mission-card strong');
     el.viewpointList = document.querySelector('.viewpoint-list ul');
     el.stepperProgress = document.querySelector('.tour-stepper div i');
-    el.btnPrevTour = document.querySelector('.tour-stepper button[aria-label="Tour trước"]');
-    el.btnNextTour = document.querySelector('.tour-stepper button[aria-label="Tour tiếp theo"]');
+    el.btnPrevTour = document.getElementById('btn-prev-tour') || document.querySelector('.tour-stepper button[aria-label="Tour trước"]') || document.querySelector('.tour-stepper button:first-child');
+    el.btnNextTour = document.getElementById('btn-next-tour') || document.querySelector('.tour-stepper button[aria-label="Tour tiếp theo"]') || document.querySelector('.tour-stepper button:last-child');
+    el.btnOpenTourDossier = document.getElementById('btnOpenTourDossier');
     el.playTourBtn = document.querySelector('.play-tour');
     el.btnReloadTour = document.getElementById('btn-reload-tour') || document.querySelector('.viewer-actions button:first-child');
     el.btnFullscreenTour = document.getElementById('btn-fullscreen-tour') || document.querySelector('.viewer-actions button:last-child');
@@ -344,22 +345,44 @@
   function initTourViewer() {
     // Arrow stepper buttons
     if (el.btnPrevTour) {
-      el.btnPrevTour.addEventListener('click', () => {
+      el.btnPrevTour.addEventListener('click', (e) => {
+        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        if (window.SiteAudio) window.SiteAudio.playClick();
         let prev = currentTourIdx;
         do {
           prev = (prev - 1 + window.TOURS_DATA.length) % window.TOURS_DATA.length;
         } while (currentFilter !== 'all' && window.TOURS_DATA[prev].catKey !== currentFilter && prev !== currentTourIdx);
         updateTourView(prev);
+        if (el.tourGuide) {
+          el.tourGuide.classList.remove('pulse-feedback');
+          void el.tourGuide.offsetWidth;
+          el.tourGuide.classList.add('pulse-feedback');
+        }
       });
     }
 
     if (el.btnNextTour) {
-      el.btnNextTour.addEventListener('click', () => {
+      el.btnNextTour.addEventListener('click', (e) => {
+        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        if (window.SiteAudio) window.SiteAudio.playClick();
         let next = currentTourIdx;
         do {
           next = (next + 1) % window.TOURS_DATA.length;
         } while (currentFilter !== 'all' && window.TOURS_DATA[next].catKey !== currentFilter && next !== currentTourIdx);
         updateTourView(next);
+        if (el.tourGuide) {
+          el.tourGuide.classList.remove('pulse-feedback');
+          void el.tourGuide.offsetWidth;
+          el.tourGuide.classList.add('pulse-feedback');
+        }
+      });
+    }
+
+    // Direct Dossier Button in Guide Panel
+    if (el.btnOpenTourDossier) {
+      el.btnOpenTourDossier.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        openPanoramaModal(window.TOURS_DATA[currentTourIdx]);
       });
     }
 
@@ -410,8 +433,8 @@
     }
 
     // Function to activate live 3D tour in main stage frame
-    function activateLive3DTour() {
-      if (window.SiteAudio) window.SiteAudio.playRadar();
+    function activateLive3DTour(playSound = true) {
+      if (playSound && window.SiteAudio) window.SiteAudio.playRadar();
       const data = window.TOURS_DATA[currentTourIdx];
       if (!data) return;
       if (el.viewerLiveIframe) {
@@ -429,7 +452,7 @@
 
     // Clicking anywhere on viewer cover activates the 3D tour
     if (el.viewerCover) {
-      el.viewerCover.addEventListener('click', activateLive3DTour);
+      el.viewerCover.addEventListener('click', () => activateLive3DTour(true));
     }
 
     // Play tour 360 viewer button
@@ -438,6 +461,7 @@
         if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
         if (window.SiteAudio) window.SiteAudio.playRadar();
         openPanoramaModal(window.TOURS_DATA[currentTourIdx]);
+        activateLive3DTour(false);
       });
     }
 
@@ -1430,7 +1454,7 @@
       });
     }
 
-    // Global ESC key listener to close open modals and mobile menu
+    // Global keyboard listener (ESC to close modals/menu, ArrowLeft/ArrowRight to step tours)
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
         const openModals = document.querySelectorAll('.custom-modal.modal-open, #modal-panorama-360.modal-open');
@@ -1442,30 +1466,38 @@
           el.mainNav.classList.remove('is-open', 'nav-open');
           if (el.menuToggle) el.menuToggle.setAttribute('aria-expanded', 'false');
         }
+      } else if (e.key === 'ArrowLeft') {
+        const openModals = document.querySelectorAll('.custom-modal.modal-open, #modal-panorama-360.modal-open');
+        if (openModals.length === 0 && (!e.target || (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA'))) {
+          if (el.btnPrevTour) el.btnPrevTour.click();
+        }
+      } else if (e.key === 'ArrowRight') {
+        const openModals = document.querySelectorAll('.custom-modal.modal-open, #modal-panorama-360.modal-open');
+        if (openModals.length === 0 && (!e.target || (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA'))) {
+          if (el.btnNextTour) el.btnNextTour.click();
+        }
       }
     });
   }
 
   // --- 8. INITIALIZE EVERYTHING ON DOM READY ---
   function init() {
-    cacheElements();
-    initHeroSparks();
-    init3DCardTilt();
-    initCounterAnimation();
-    initScrollReveal();
-    initBackToTop();
-    initTourViewer();
-    initTacticalMap();
-    initRouteModals();
-    initPhaseModals();
-    initGalleryLightbox();
-    initSteamLab();
-    initHeaderNav();
+    try { cacheElements(); } catch (err) { console.error('cacheElements error:', err); }
+    try { initHeroSparks(); } catch (err) { console.error('initHeroSparks error:', err); }
+    try { init3DCardTilt(); } catch (err) { console.error('init3DCardTilt error:', err); }
+    try { initCounterAnimation(); } catch (err) { console.error('initCounterAnimation error:', err); }
+    try { initScrollReveal(); } catch (err) { console.error('initScrollReveal error:', err); }
+    try { initBackToTop(); } catch (err) { console.error('initBackToTop error:', err); }
+    try { initTourViewer(); } catch (err) { console.error('initTourViewer error:', err); }
+    try { initTacticalMap(); } catch (err) { console.error('initTacticalMap error:', err); }
+    try { initRouteModals(); } catch (err) { console.error('initRouteModals error:', err); }
+    try { initPhaseModals(); } catch (err) { console.error('initPhaseModals error:', err); }
+    try { initGalleryLightbox(); } catch (err) { console.error('initGalleryLightbox error:', err); }
+    try { initSteamLab(); } catch (err) { console.error('initSteamLab error:', err); }
+    try { initHeaderNav(); } catch (err) { console.error('initHeaderNav error:', err); }
 
-    // Set initial tour (Tri ân 02 - Him Lam, index 5)
-    updateTourView(currentTourIdx, false);
-    // Set initial hotspot (H01 Him Lam, index 0)
-    updateHotspot(currentHotspotIdx, false);
+    try { updateTourView(currentTourIdx, false); } catch (err) { console.error('updateTourView error:', err); }
+    try { updateHotspot(currentHotspotIdx, false); } catch (err) { console.error('updateHotspot error:', err); }
 
     console.log('Điện Biên 3D Interactive Engine initialized successfully!');
   }

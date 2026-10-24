@@ -876,3 +876,70 @@ a,
 .gallery-card:hover img {
   filter: saturate(1.1) contrast(1.05);
 }
+
+/* Stepper Buttons & Feedback */
+.tour-stepper button {
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  user-select: none;
+}
+
+.tour-stepper button:hover {
+  background: var(--gold-light, #e5c985) !important;
+  color: var(--ink, #0a1418) !important;
+  transform: scale(1.1);
+  box-shadow: 0 0 14px rgba(229, 201, 133, 0.5) !important;
+}
+
+.tour-stepper button:active {
+  transform: scale(0.95);
+}
+
+/* Tour Dossier Quick Action Button */
+.tour-dossier-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(229, 201, 133, 0.08);
+  border: 1px solid rgba(229, 201, 133, 0.35);
+  border-radius: 4px;
+  color: var(--gold-light, #e5c985);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer !important;
+  transition: all 0.25s ease;
+}
+
+.tour-dossier-btn:hover {
+  background: rgba(229, 201, 133, 0.18);
+  border-color: var(--gold-light, #e5c985);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  color: #ffffff;
+}
+
+.tour-dossier-btn i {
+  font-style: normal;
+  font-size: 1.05rem;
+  transition: transform 0.2s ease;
+}
+
+.tour-dossier-btn:hover i {
+  transform: translate(2px, -2px);
+}
+
+/* Pulse animation on tour change */
+.pulse-feedback {
+  animation: pulseCard 0.4s ease-out;
+}
+
+@keyframes pulseCard {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.015); filter: brightness(1.15); }
+  100% { transform: scale(1); filter: brightness(1); }
+}

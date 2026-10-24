@@ -73,8 +73,8 @@
         <h1>Không chỉ một nơi.<br/><em>Cả chiến trường lên tiếng.</em></h1>
         <p class="hero-lead">Tám không gian 360° kết nối sở chỉ huy, điểm cao, di tích và các nơi tưởng niệm thành một hành trình học lịch sử có nhiệm vụ, dữ liệu và góc nhìn hệ thống.</p>
         <div class="hero-actions">
-          <button class="button button-primary" type="button">Bắt đầu khám phá <span>↗</span></button>
-          <button class="text-link" type="button">Xem 4 chặng hành trình</button>
+          <a class="button button-primary" href="#viewer" id="btnHeroExplore">Bắt đầu khám phá <span>↗</span></a>
+          <a class="text-link" href="#route" id="btnHeroRoute">Xem 4 chặng hành trình</a>
         </div>
         <div class="hero-facts route-facts">
           <div><strong class="counter-number" data-counter-target="8" data-counter-format="2digit">08</strong><span>Không gian 3D</span></div>
@@ -100,7 +100,7 @@
           <strong>Chọn một điểm · quan sát · hoàn thành nhiệm vụ</strong>
         </figcaption>
       </div>
-      <div class="hero-scroll" style="cursor: pointer;" title="Nhấp để cuộn xuống khám phá"><span>Cuộn để khám phá</span><i></i></div>
+      <a class="hero-scroll" href="#viewer" style="cursor: pointer;" title="Nhấp để cuộn xuống khám phá"><span>Cuộn để khám phá</span><i></i></a>
     </section>
 
     <!-- 3D Tour Viewer Section -->
@@ -181,10 +181,14 @@
           </div>
           <!-- Stepper: Nút mũi tên điều hướng -->
           <div class="tour-stepper">
-            <button type="button" aria-label="Tour trước">←</button>
+            <button type="button" id="btn-prev-tour" class="stepper-btn stepper-btn-prev" aria-label="Tour trước" title="Chuyển sang tour trước (phím ←)">←</button>
             <div><i style="width:75%"></i></div>
-            <button type="button" aria-label="Tour tiếp theo">→</button>
+            <button type="button" id="btn-next-tour" class="stepper-btn stepper-btn-next" aria-label="Tour tiếp theo" title="Chuyển sang tour tiếp theo (phím →)">→</button>
           </div>
+          <button type="button" class="tour-dossier-btn" id="btnOpenTourDossier" title="Xem hồ sơ và tư liệu chi tiết của địa điểm này">
+            <span>Mở hồ sơ &amp; tư liệu 360°</span>
+            <i>↗</i>
+          </button>
         </aside>
       </div>
 
