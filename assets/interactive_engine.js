@@ -31,8 +31,11 @@
     el.btnPrevTour = document.querySelector('.tour-stepper button[aria-label="Tour trước"]');
     el.btnNextTour = document.querySelector('.tour-stepper button[aria-label="Tour tiếp theo"]');
     el.playTourBtn = document.querySelector('.play-tour');
-    el.btnReloadTour = document.querySelector('.viewer-actions button:first-child');
-    el.btnFullscreenTour = document.querySelector('.viewer-actions button:last-child');
+    el.btnReloadTour = document.getElementById('btn-reload-tour') || document.querySelector('.viewer-actions button:first-child');
+    el.btnFullscreenTour = document.getElementById('btn-fullscreen-tour') || document.querySelector('.viewer-actions button:last-child');
+    el.viewerLiveIframe = document.getElementById('viewerLiveIframe');
+    el.btnToggleCover = document.getElementById('btn-toggle-cover');
+    el.viewerExternalLink = document.getElementById('viewerExternalLink');
     el.tourFilterBtns = document.querySelectorAll('.tour-filter button');
     el.tourCards = document.querySelectorAll('.tour-rail .tour-card');
 
@@ -328,8 +331,14 @@
     }
 
     // Update external tour link
+    if (el.viewerExternalLink) el.viewerExternalLink.href = data.externalUrl;
     const extLink = document.querySelector('.viewer-help a');
     if (extLink) extLink.href = data.externalUrl;
+
+    // Update live iframe if currently active
+    if (el.viewerLiveIframe && el.viewerLiveIframe.style.display !== 'none') {
+      el.viewerLiveIframe.src = data.externalUrl;
+    }
   }
 
   function initTourViewer() {
@@ -400,6 +409,52 @@
       });
     }
 
+    // Function to activate live 3D tour in main stage frame
+    function activateLive3DTour() {
+      if (window.SiteAudio) window.SiteAudio.playRadar();
+      const data = window.TOURS_DATA[currentTourIdx];
+      if (!data) return;
+      if (el.viewerLiveIframe) {
+        if (!el.viewerLiveIframe.src || el.viewerLiveIframe.src === '' || el.viewerLiveIframe.src === 'about:blank' || !el.viewerLiveIframe.src.includes(data.externalUrl)) {
+          el.viewerLiveIframe.src = data.externalUrl;
+        }
+        el.viewerLiveIframe.style.display = 'block';
+        if (el.viewerCover) el.viewerCover.style.display = 'none';
+        if (el.btnToggleCover) {
+          el.btnToggleCover.style.display = 'inline-block';
+          el.btnToggleCover.textContent = 'Ảnh bìa';
+        }
+      }
+    }
+
+    // Clicking anywhere on viewer cover activates the 3D tour
+    if (el.viewerCover) {
+      el.viewerCover.addEventListener('click', activateLive3DTour);
+    }
+
+    // Play tour 360 viewer button
+    if (el.playTourBtn) {
+      el.playTourBtn.addEventListener('click', (e) => {
+        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        if (window.SiteAudio) window.SiteAudio.playRadar();
+        openPanoramaModal(window.TOURS_DATA[currentTourIdx]);
+      });
+    }
+
+    // Toggle between Cover and Live 3D Tour
+    if (el.btnToggleCover) {
+      el.btnToggleCover.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        if (el.viewerCover && el.viewerCover.style.display === 'none') {
+          el.viewerCover.style.display = 'block';
+          if (el.viewerLiveIframe) el.viewerLiveIframe.style.display = 'none';
+          el.btnToggleCover.textContent = 'Mở 3D';
+        } else {
+          activateLive3DTour();
+        }
+      });
+    }
+
     // Reload button
     if (el.btnReloadTour) {
       el.btnReloadTour.disabled = false;
@@ -408,6 +463,9 @@
         if (el.viewerCover) {
           el.viewerCover.classList.add('scanning-flash');
           setTimeout(() => el.viewerCover.classList.remove('scanning-flash'), 600);
+        }
+        if (el.viewerLiveIframe && el.viewerLiveIframe.style.display !== 'none' && window.TOURS_DATA[currentTourIdx]) {
+          el.viewerLiveIframe.src = window.TOURS_DATA[currentTourIdx].externalUrl;
         }
         updateTourView(currentTourIdx, false);
       });
@@ -432,14 +490,6 @@
             document.webkitExitFullscreen();
           }
         }
-      });
-    }
-
-    // Play tour 360 viewer button
-    if (el.playTourBtn) {
-      el.playTourBtn.addEventListener('click', () => {
-        if (window.SiteAudio) window.SiteAudio.playRadar();
-        openPanoramaModal(window.TOURS_DATA[currentTourIdx]);
       });
     }
   }
@@ -704,32 +754,29 @@
 
   // --- 5. INTERACTIVE ROUTE MODALS (#route) ---
   function initRouteModals() {
-    const routeBtns = document.querySelectorAll('.route-chapters button');
-    if (routeBtns.length >= 4) {
-      // 0: Mở Mường Phăng
-      routeBtns[0].addEventListener('click', () => {
-        if (window.SiteAudio) window.SiteAudio.playClick();
-        openGeneralDossierModal();
-      });
+    const routeArticles = document.querySelectorAll('.route-chapters article');
+    const routeHandlers = [
+      openGeneralDossierModal,
+      openCompareA1D1Modal,
+      openBanPhuHeritageModal,
+      openMemorialRouteModal
+    ];
 
-      // 1: So sánh A1 – D1
-      routeBtns[1].addEventListener('click', () => {
+    routeArticles.forEach((article, idx) => {
+      article.style.cursor = 'pointer';
+      article.addEventListener('click', () => {
         if (window.SiteAudio) window.SiteAudio.playClick();
-        openCompareA1D1Modal();
+        if (routeHandlers[idx]) routeHandlers[idx]();
       });
-
-      // 2: Đến Thành Bản Phủ
-      routeBtns[2].addEventListener('click', () => {
-        if (window.SiteAudio) window.SiteAudio.playClick();
-        openBanPhuHeritageModal();
-      });
-
-      // 3: Bắt đầu tuyến tri ân
-      routeBtns[3].addEventListener('click', () => {
-        if (window.SiteAudio) window.SiteAudio.playClick();
-        openMemorialRouteModal();
-      });
-    }
+      const btn = article.querySelector('button');
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (window.SiteAudio) window.SiteAudio.playClick();
+          if (routeHandlers[idx]) routeHandlers[idx]();
+        });
+      }
+    });
   }
 
   function createBaseModal(id, title, badge, contentHtml) {
@@ -1048,6 +1095,247 @@
     }
   }
 
+  // --- 6B. 56 DAYS TIMELINE PHASE MODALS ---
+  const PHASES_DATA = [
+    {
+      index: "01",
+      period: "15/01 – 12/03/1954",
+      title: "Giai Đoạn Chuẩn Bị & Mở Đường Kéo Pháo",
+      objective: "Chuyển phương châm tác chiến, chuẩn bị toàn diện lực lượng, mở đường xuyên rừng kéo pháo vào trận địa.",
+      details: [
+        { label: "Quyết định lịch sử", val: "Ngày 26/01/1954, Đại tướng Võ Nguyên Giáp ra quyết định thay đổi phương châm từ 'Đánh nhanh, thắng nhanh' sang 'Đánh chắc, tiến chắc'." },
+        { label: "Kỳ tích kéo pháo", val: "Hàng ngàn chiến sĩ dùng sức người kéo các khẩu lựu pháo 105mm nặng hơn 2 tấn vượt qua dốc cao đèo thẳm lên đỉnh núi bao quanh thung lũng Mường Thanh." },
+        { label: "Xây dựng công sự", val: "Bố trí trận địa pháo ngụy trang kiên cố khoét sâu trong lòng núi, bảo toàn lực lượng trước không quân Pháp." }
+      ],
+      lesson: "Bài học về sự thận trọng, tinh thần quả cảm và tư duy quân sự khoa học đặt tính mạng chiến sĩ và thắng lợi chiến dịch lên trên hết."
+    },
+    {
+      index: "02",
+      period: "13/03 – 17/03/1954",
+      title: "Đợt Tiến Công Thứ Nhất: Đập Tan Cánh Cửa Thép Phía Bắc",
+      objective: "Tiêu diệt trung tâm đề kháng Him Lam và Độc Lập, bức hàng Bản Kéo, khai thông cửa ngõ vào phân khu trung tâm.",
+      details: [
+        { label: "Mở màn Him Lam (13/03)", val: "Pháo binh phát hỏa lúc 17h05. Anh hùng Phan Đình Giót lấy thân mình lấp lỗ châu mai. Ta tiêu diệt hoàn toàn cứ điểm trong 5 giờ." },
+        { label: "Tiêu diệt Độc Lập (15/03)", val: "Trận đánh hiệp đồng pháo - bộ binh mẫu mực san phẳng cứ điểm kiên cố nhất của địch sau đêm bão lửa." },
+        { label: "Bức hàng Bản Kéo (17/03)", val: "Dùng chiến thuật địch vận làm tan rã phân khu Bản Kéo, làm chủ hoàn toàn cửa ngõ phía Bắc thung lũng." }
+      ],
+      lesson: "Chiến thuật đánh điểm diệt viện, khai hỏa pháo binh bất ngờ áp đảo và đòn tâm lý làm lung lay ý chí đối phương."
+    },
+    {
+      index: "03",
+      period: "30/03 – 30/04/1954",
+      title: "Đợt Tiến Công Thứ Hai: Siết Chặt Vòng Vây & Đồi Phía Đông",
+      objective: "Tiến công các cứ điểm cao điểm phía Đông (A1, C1, D1, E1), đào chiến hào siết chặt sân bay Mường Thanh, cắt đứt tiếp tế đường không.",
+      details: [
+        { label: "Giằng co ác liệt tại A1", val: "Trận chiến dài ngày và cam go nhất chiến dịch. Ta và địch giành giật từng tấc đất, hầm hào trên đỉnh đồi A1." },
+        { label: "Chiến thuật vây lấn (Hào giao thông)", val: "Đào hàng trăm km giao thông hào chằng chịt như mạng nhện siết chặt lòng chảo, cắt đôi sân bay Mường Thanh." },
+        { label: "Bắn tỉa & Bóp nghẹt tiếp tế", val: "Khống chế toàn bộ không phận thả dù, biến nguồn dù tiếp tế của Pháp thành nguồn chi viện cho quân ta." }
+      ],
+      lesson: "Sáng tạo nghệ thuật vây lấn độc đáo trong lịch sử quân sự thế giới: dùng xẻng và chiến hào bóp nghẹt pháo đài bất khả xâm phạm."
+    },
+    {
+      index: "04",
+      period: "01/05 – 07/05/1954",
+      title: "Đợt Tiến Công Thứ Ba: Bộc Phá A1 & Tổng Công Kích Toàn Mặt Trận",
+      objective: "Tiêu diệt các điểm cao còn lại, cho nổ bộc phá A1, tổng công kích bắt sống tướng De Castries và toàn bộ Bộ chỉ huy tập đoàn cứ điểm.",
+      details: [
+        { label: "Khối bộc phá 960kg Đồi A1", val: "Đúng 20h30 ngày 06/05, tiếng nổ rung chuyển thung lũng báo hiệu giờ tổng công kích, xóa sổ cứ điểm kháng cự cuối cùng của địch." },
+        { label: "Chiều ngày 07/05/1954 lịch sử", val: "15h ngày 07/05, lệnh tổng công kích phát ra. Đại đội 360 (Trung đoàn 209) xông thẳng vào sở chỉ huy phân khu trung tâm." },
+        { label: "Lá cờ Quyết chiến Quyết thắng", val: "17h30 ngày 07/05, lá cờ đỏ sao vàng tung bay kiêu hãnh trên nóc hầm De Castries. Toàn bộ hơn 16.000 quân địch ra hàng." }
+      ],
+      lesson: "Đỉnh cao của ý chí dân tộc, sự kiên định đến cùng và thắng lợi 'lừng lẫy năm châu, chấn động địa cầu'."
+    }
+  ];
+
+  function openPhaseModal(phaseIndex) {
+    const data = PHASES_DATA[phaseIndex];
+    if (!data) return;
+    if (window.SiteAudio) window.SiteAudio.playRadar();
+
+    let modal = document.getElementById('modal-phase-dossier');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'modal-phase-dossier';
+      modal.className = 'custom-modal';
+      modal.innerHTML = `
+        <div class="modal-backdrop"></div>
+        <div class="modal-window dossier-window">
+          <div class="modal-header">
+            <div class="modal-title-group">
+              <span class="modal-badge" id="phase-badge">TRỤC THỜI GIAN 56 NGÀY ĐÊM</span>
+              <h3 id="phase-title"></h3>
+            </div>
+            <button class="modal-close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+          </div>
+          <div class="modal-body" id="phase-body"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      modal.querySelector('.modal-close').addEventListener('click', () => {
+        modal.classList.remove('modal-open');
+        const openModals = document.querySelectorAll('.custom-modal.modal-open, #modal-panorama-360.modal-open');
+        if (openModals.length === 0) document.body.style.overflow = '';
+      });
+      modal.querySelector('.modal-backdrop').addEventListener('click', () => {
+        modal.classList.remove('modal-open');
+        const openModals = document.querySelectorAll('.custom-modal.modal-open, #modal-panorama-360.modal-open');
+        if (openModals.length === 0) document.body.style.overflow = '';
+      });
+    }
+
+    modal.querySelector('#phase-badge').textContent = `GIAI ĐOẠN ${data.index} · ${data.period}`;
+    modal.querySelector('#phase-title').textContent = data.title;
+    modal.querySelector('#phase-body').innerHTML = `
+      <div class="dossier-grid">
+        <div class="dossier-col main-intel">
+          <div class="intel-block">
+            <h4>MỤC TIÊU CHIẾN LƯỢC</h4>
+            <p>${data.objective}</p>
+          </div>
+          <div class="intel-block">
+            <h4>DIỄN BIẾN & SỰ KIỆN THEN CHỐT</h4>
+            <div class="intel-facts">
+              ${data.details.map(d => `
+                <div class="fact-item">
+                  <strong>${d.label}:</strong>
+                  <span>${d.val}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="dossier-col side-intel">
+          <div class="inquiry-highlight">
+            <span class="tag">BÀI HỌC LỊCH SỬ</span>
+            <p>${data.lesson}</p>
+          </div>
+          <div class="hotspot-action" style="margin-top:1.25rem;">
+            <button type="button" class="button button-primary" style="width:100%; text-align:center;" onclick="document.getElementById('modal-phase-dossier').classList.remove('modal-open'); const m = document.getElementById('map'); if(m) m.scrollIntoView({behavior:'smooth'});">
+              Xem vị trí trên bản đồ quân sự ↓
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.style.overflow = 'hidden';
+    modal.classList.add('modal-open');
+  }
+
+  function initPhaseModals() {
+    const phaseCards = document.querySelectorAll('.phase-grid .phase-card');
+    phaseCards.forEach((card, idx) => {
+      card.addEventListener('click', () => {
+        openPhaseModal(idx);
+      });
+    });
+  }
+
+  // --- 6C. GALLERY PHOTO LIGHTBOX MODAL ---
+  const GALLERY_DATA = [
+    {
+      title: "Đài Tưởng Niệm Cứ Điểm Him Lam",
+      sub: "Di tích lịch sử Quốc gia đặc biệt",
+      image: "images/him-lam-memorial.webp",
+      desc: "Nơi ghi danh các anh hùng liệt sĩ đã ngã xuống trong trận đánh mở màn ngày 13/03/1954, đập tan cứ điểm kiên cố nhất của tập đoàn cứ điểm trong vòng chưa đầy 6 giờ.",
+      tourIdx: 5
+    },
+    {
+      title: "Sở Chỉ Huy Chiến Dịch Mường Phăng",
+      sub: "Hệ thống hầm chỉ huy trong rừng nguyên sinh",
+      image: "images/muong-phang.webp",
+      desc: "Nơi Đại tướng Võ Nguyên Giáp cùng Bộ chỉ huy chiến dịch làm việc, đưa ra những quyết sách mang tính bước ngoặt đưa chiến dịch đến thắng lợi hoàn toàn.",
+      tourIdx: 0
+    },
+    {
+      title: "Đồi D1 — Quần Thể Tượng Đài Chiến Thắng",
+      sub: "Cao điểm khống chế toàn bộ lòng chảo Mường Thanh",
+      image: "images/d1.webp",
+      desc: "Cao điểm phòng ngự kiên cố của dãy đồi phía Đông, cao hơn mặt thung lũng 50 mét, nay là nơi sừng sững tượng đài chiến thắng bằng đồng lớn nhất Việt Nam.",
+      tourIdx: 2
+    },
+    {
+      title: "Đồi A1 — Cứ Điểm Quyết Chiến 39 Ngày Đêm",
+      sub: "Hố bộc phá 960kg TNT & xác xe tăng Bazeilles",
+      image: "images/a1.webp",
+      desc: "Chiến trường ác liệt và giằng co nhất giữa ta và địch, nơi từng tấc chiến hào thấm đẫm máu xương của các chiến sĩ trước giờ tổng công kích.",
+      tourIdx: 1
+    }
+  ];
+
+  function openGalleryLightbox(index) {
+    const data = GALLERY_DATA[index];
+    if (!data) return;
+    if (window.SiteAudio) window.SiteAudio.playClick();
+
+    let modal = document.getElementById('modal-gallery-lightbox');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'modal-gallery-lightbox';
+      modal.className = 'custom-modal';
+      modal.innerHTML = `
+        <div class="modal-backdrop"></div>
+        <div class="modal-window pano-window">
+          <div class="modal-header">
+            <div class="modal-title-group">
+              <span class="modal-badge" id="lightbox-sub">TƯ LIỆU HÌNH ẢNH LỊCH SỬ</span>
+              <h3 id="lightbox-title"></h3>
+            </div>
+            <button class="modal-close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+          </div>
+          <div class="pano-viewport" style="background:#000; display:flex; align-items:center; justify-content:center;">
+            <img id="lightbox-img" src="" alt="Photo" style="max-height:65vh; max-width:100%; object-fit:contain;" />
+          </div>
+          <div class="pano-footer" style="padding:1rem 1.5rem; justify-content:space-between; align-items:center;">
+            <p id="lightbox-desc" style="color:var(--ink-soft); margin:0; font-size:0.88rem; max-width:70%; line-height:1.5;"></p>
+            <button type="button" class="button button-primary" id="lightbox-tour-btn">
+              Khám phá 3D địa điểm này ↗
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      modal.querySelector('.modal-close').addEventListener('click', () => {
+        modal.classList.remove('modal-open');
+        const openModals = document.querySelectorAll('.custom-modal.modal-open, #modal-panorama-360.modal-open');
+        if (openModals.length === 0) document.body.style.overflow = '';
+      });
+      modal.querySelector('.modal-backdrop').addEventListener('click', () => {
+        modal.classList.remove('modal-open');
+        const openModals = document.querySelectorAll('.custom-modal.modal-open, #modal-panorama-360.modal-open');
+        if (openModals.length === 0) document.body.style.overflow = '';
+      });
+    }
+
+    modal.querySelector('#lightbox-sub').textContent = data.sub;
+    modal.querySelector('#lightbox-title').textContent = data.title;
+    modal.querySelector('#lightbox-img').src = data.image;
+    modal.querySelector('#lightbox-desc').textContent = data.desc;
+    
+    const tourBtn = modal.querySelector('#lightbox-tour-btn');
+    tourBtn.onclick = () => {
+      modal.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      updateTourView(data.tourIdx);
+      const v = document.getElementById('viewer');
+      if (v) v.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    document.body.style.overflow = 'hidden';
+    modal.classList.add('modal-open');
+  }
+
+  function initGalleryLightbox() {
+    const figures = document.querySelectorAll('.gallery-grid figure');
+    figures.forEach((fig, idx) => {
+      fig.addEventListener('click', () => {
+        openGalleryLightbox(idx);
+      });
+    });
+  }
+
   // --- 7. HEADER & NAVIGATION CONTROLLER ---
   function initHeaderNav() {
     if (el.menuToggle && el.mainNav) {
@@ -1095,6 +1383,36 @@
       });
     }
 
+    // Hero scroll link
+    const heroScroll = document.querySelector('.hero-scroll');
+    if (heroScroll) {
+      heroScroll.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        const viewerSection = document.getElementById('viewer');
+        if (viewerSection) viewerSection.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+
+    // Hero route poster nodes
+    document.querySelectorAll('.route-node').forEach(node => {
+      node.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        const targetTour = parseInt(node.getAttribute('data-target-tour'), 10);
+        if (!isNaN(targetTour)) updateTourView(targetTour);
+        const viewerSection = document.getElementById('viewer');
+        if (viewerSection) viewerSection.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    const routeBadge = document.querySelector('.route-badge');
+    if (routeBadge) {
+      routeBadge.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        const viewerSection = document.getElementById('viewer');
+        if (viewerSection) viewerSection.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+
     // Audio mute toggle button
     const audioToggle = document.getElementById('audio-toggle-btn');
     if (audioToggle) {
@@ -1139,6 +1457,8 @@
     initTourViewer();
     initTacticalMap();
     initRouteModals();
+    initPhaseModals();
+    initGalleryLightbox();
     initSteamLab();
     initHeaderNav();
 

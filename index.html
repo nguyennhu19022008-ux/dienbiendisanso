@@ -87,20 +87,20 @@
         <div class="image-vignette"></div>
         <div class="route-orbit orbit-one"></div>
         <div class="route-orbit orbit-two"></div>
-        <div class="route-badge">
+        <div class="route-badge" style="cursor: pointer;" title="Nhấp để xem danh sách 8 không gian 3D">
           <span>3D ROUTE</span>
           <strong>08</strong>
           <small>điểm đến</small>
         </div>
-        <div class="route-node node-a"><i></i> A1</div>
-        <div class="route-node node-b"><i></i> D1</div>
-        <div class="route-node node-c"><i></i> MP</div>
+        <div class="route-node node-a" data-target-tour="1" style="cursor: pointer;" title="Nhấp để xem 3D Đồi A1"><i></i> A1</div>
+        <div class="route-node node-b" data-target-tour="2" style="cursor: pointer;" title="Nhấp để xem 3D Đồi D1"><i></i> D1</div>
+        <div class="route-node node-c" data-target-tour="0" style="cursor: pointer;" title="Nhấp để xem 3D Mường Phăng"><i></i> MP</div>
         <figcaption>
           <span>HÀNH TRÌNH ĐANG SẴN SÀNG</span>
           <strong>Chọn một điểm · quan sát · hoàn thành nhiệm vụ</strong>
         </figcaption>
       </div>
-      <div class="hero-scroll"><span>Cuộn để khám phá</span><i></i></div>
+      <div class="hero-scroll" style="cursor: pointer;" title="Nhấp để cuộn xuống khám phá"><span>Cuộn để khám phá</span><i></i></div>
     </section>
 
     <!-- 3D Tour Viewer Section -->
@@ -128,11 +128,12 @@
           <div class="viewer-topbar">
             <div class="viewer-status"><i></i> TOUR TRỰC TUYẾN · HIM LAM</div>
             <div class="viewer-actions">
-              <button type="button">Tải lại</button>
-              <button type="button">Toàn màn hình</button>
+              <button type="button" id="btn-reload-tour" title="Tải lại không gian 3D">Tải lại</button>
+              <button type="button" id="btn-toggle-cover" style="display:none;" title="Chuyển về xem ảnh bìa">Ảnh bìa</button>
+              <button type="button" id="btn-fullscreen-tour" title="Xem toàn màn hình">Toàn màn hình</button>
             </div>
           </div>
-          <div class="viewer-cover">
+          <div class="viewer-cover" id="viewerCover" style="cursor: pointer;" title="Nhấp chuột bất kỳ đâu để mở không gian 3D tương tác">
             <img src="images/him-lam-aerial.webp" alt="Nghĩa trang Liệt sĩ Him Lam" />
             <div class="viewer-cover-shade"></div>
             <div class="cover-location">
@@ -140,16 +141,17 @@
               <strong>Him Lam</strong>
               <small>21.403° N · 103.033° E</small>
             </div>
-            <button class="play-tour" type="button">
+            <button class="play-tour" type="button" title="Nhấp để mở tương tác 360°">
               <span>360°</span>
               <strong>Mở không gian 3D</strong>
               <small>Nhấp để xem &amp; tương tác xoay</small>
             </button>
           </div>
+          <iframe id="viewerLiveIframe" class="viewer-live-iframe" src="" allowfullscreen allow="accelerometer; gyroscope; magnetometer; vr" style="display:none; width:100%; height:100%; border:0; min-height:640px;" title="Không gian 3D thực tế ảo"></iframe>
           <div class="viewer-help">
-            <span>↔ Kéo để xoay</span>
-            <span>＋ / − Phóng to</span>
-            <a href="https://demo.egal.vn/dienbien/data/6/" target="_blank" rel="noreferrer">Mở cửa sổ riêng ↗</a>
+            <span>↔ Kéo để xoay 360°</span>
+            <span>＋ / − Phóng to / Thu nhỏ</span>
+            <a id="viewerExternalLink" href="https://demo.egal.vn/dienbien/data/6/" target="_blank" rel="noreferrer">Mở cửa sổ riêng ↗</a>
           </div>
         </div>
 
@@ -302,25 +304,25 @@
           <p>Thay vì học thuộc các mốc rời rạc, hành trình cho thấy chỉ huy, hậu cần, kỹ thuật và chiến đấu liên kết với nhau như thế nào.</p>
         </div>
         <div class="phase-grid">
-          <article class="phase-card">
+          <article class="phase-card" data-phase-idx="0" style="cursor: pointer;" title="Nhấp để xem chi tiết Giai đoạn 01">
             <div class="phase-index"><span>01</span><i>→</i></div>
             <time>15/01 – 12/03</time>
             <h3>Chuẩn bị chiến dịch</h3>
             <p>Tổ chức lực lượng, hậu cần, pháo binh và điều chỉnh phương án tác chiến.</p>
           </article>
-          <article class="phase-card">
+          <article class="phase-card" data-phase-idx="1" style="cursor: pointer;" title="Nhấp để xem chi tiết Giai đoạn 02">
             <div class="phase-index"><span>02</span><i>→</i></div>
             <time>13/03 – 17/03</time>
             <h3>Đợt tiến công thứ nhất</h3>
             <p>Mở màn tại Him Lam, tiếp tục vào Độc Lập và làm thay đổi cục diện phía Bắc.</p>
           </article>
-          <article class="phase-card">
+          <article class="phase-card" data-phase-idx="2" style="cursor: pointer;" title="Nhấp để xem chi tiết Giai đoạn 03">
             <div class="phase-index"><span>03</span><i>→</i></div>
             <time>30/03 – 30/04</time>
             <h3>Đợt tiến công thứ hai</h3>
             <p>Tiến công các cứ điểm phía Đông, xây dựng trận địa và siết chặt vòng vây.</p>
           </article>
-          <article class="phase-card">
+          <article class="phase-card" data-phase-idx="3" style="cursor: pointer;" title="Nhấp để xem chi tiết Giai đoạn 04">
             <div class="phase-index"><span>04</span><i style="display:inline-flex;align-items:center;justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></i></div>
             <time>01/05 – 07/05</time>
             <h3>Đợt tiến công thứ ba</h3>
@@ -581,28 +583,28 @@
         <a class="text-link" href="https://dulichdienbien.vietnaminfo.net/vi/vtours" target="_blank" rel="noreferrer">Xem danh mục tour chính thức ↗</a>
       </div>
       <div class="gallery-grid">
-        <figure class="featured">
+        <figure class="featured gallery-card" data-gallery-idx="0" style="cursor: pointer;" title="Nhấp để xem ảnh phóng to & tư liệu">
           <img src="images/him-lam-memorial.webp" alt="Nghĩa trang Him Lam" />
           <figcaption>
             <span>Không gian tưởng niệm</span>
             <strong>Nghĩa trang Him Lam</strong>
           </figcaption>
         </figure>
-        <figure class="">
+        <figure class="gallery-card" data-gallery-idx="1" style="cursor: pointer;" title="Nhấp để xem ảnh phóng to & tư liệu">
           <img src="images/muong-phang.webp" alt="Mường Phăng" />
           <figcaption>
             <span>Hệ thống chỉ huy</span>
             <strong>Mường Phăng</strong>
           </figcaption>
         </figure>
-        <figure class="">
+        <figure class="gallery-card" data-gallery-idx="2" style="cursor: pointer;" title="Nhấp để xem ảnh phóng to & tư liệu">
           <img src="images/d1.webp" alt="Đồi D1" />
           <figcaption>
             <span>Địa hình phía Đông</span>
             <strong>Đồi D1</strong>
           </figcaption>
         </figure>
-        <figure class="">
+        <figure class="gallery-card" data-gallery-idx="3" style="cursor: pointer;" title="Nhấp để xem ảnh phóng to & tư liệu">
           <img src="images/a1.webp" alt="Đồi A1" />
           <figcaption>
             <span>Kỹ thuật và chiến đấu</span>
