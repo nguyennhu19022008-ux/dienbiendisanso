@@ -1,4 +1,4 @@
-﻿/* Interactive Enhancements & Visual FX Suite */
+/* Interactive Enhancements & Visual FX Suite */
 
 /* =========================================================
    1. VISUAL EFFECTS & ANIMATIONS SUITE (HERITAGE ATMOSPHERE)
@@ -13,6 +13,19 @@
   pointer-events: none;
   z-index: 2;
   opacity: 0.85;
+}
+
+/* Reading Scroll Progress Bar at Top of Header */
+.scroll-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--red, #9c3b32), var(--gold, #c69a47));
+  z-index: 101;
+  pointer-events: none;
+  transition: width 0.05s linear;
 }
 
 /* Header Audio Button & Mini Equalizer Bars */
@@ -285,6 +298,10 @@
 .footer-copyright-pill {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex-wrap: wrap;
+  max-width: 100%;
   gap: 0.6rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -294,6 +311,12 @@
   color: rgba(255, 255, 255, 0.7);
   margin: 1rem 0;
   backdrop-filter: blur(6px);
+}
+
+@media (max-width: 560px) {
+  .footer-copyright-pill {
+    border-radius: 12px;
+  }
 }
 
 .footer-copyright-pill .badge-tag {
@@ -680,28 +703,44 @@
   color: #000000;
 }
 
-/* Audio Toggle in Header */
-.audio-toggle-btn {
-  background: transparent;
-  border: 1px solid rgba(16, 37, 43, 0.2);
-  color: var(--ink, #0a1418);
-  padding: 0.4rem 0.6rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+/* Tactical Map Exploration Modes */
+.strategy-map.mode-journey .route {
+  background: repeating-linear-gradient(var(--red, #9c3b32) 0 8px, transparent 8px 14px);
+  width: 3px;
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(156, 59, 50, 0.6);
+  transition: all 0.3s ease;
 }
 
-.audio-toggle-btn:hover {
-  background: rgba(16, 37, 43, 0.08);
-}
-
-.audio-toggle-btn.muted svg {
+.strategy-map.mode-journey .contour {
   opacity: 0.35;
+  transition: opacity 0.3s ease;
+}
+
+.strategy-map.mode-system .route {
+  opacity: 0.2;
+  transition: opacity 0.3s ease;
+}
+
+.strategy-map.mode-system .contour {
+  border-color: rgba(198, 154, 71, 0.5);
+  box-shadow: inset 0 0 14px rgba(198, 154, 71, 0.1);
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+.strategy-map.mode-system:before,
+.strategy-map.mode-system:after {
+  border-color: rgba(198, 154, 71, 0.4);
+  background: rgba(198, 154, 71, 0.03);
+  transition: all 0.3s ease;
+}
+
+/* Mobile Navigation Dual Class Compatibility */
+@media (max-width: 1180px) {
+  .main-nav.nav-open {
+    display: flex !important;
+  }
 }
 
 /* Map Sonar Wave & Pulse */

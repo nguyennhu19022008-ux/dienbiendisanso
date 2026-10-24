@@ -96,7 +96,9 @@
 
   function toggleMute() {
     isMuted = !isMuted;
-    localStorage.setItem('db3d_muted', isMuted ? '1' : '0');
+    try {
+      localStorage.setItem('db3d_muted', isMuted ? '1' : '0');
+    } catch(e) {}
     return isMuted;
   }
 

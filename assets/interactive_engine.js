@@ -1,4 +1,4 @@
-﻿// Interactive Engine for Dien Bien 3D - STEAM Heritage Lab
+// Interactive Engine for Dien Bien 3D - STEAM Heritage Lab
 (function() {
   'use strict';
 
@@ -8,7 +8,6 @@
   let currentHotspotIdx = 0; // Default: H01 Him Lam
   let visitedHotspots = new Set(['H01']);
   let isMapJourneyMode = true;
-  let isPage0Active = true;
 
   // DOM Elements cache
   const el = {};
@@ -126,7 +125,7 @@
 
   // B. 3D Card Tilt & Interactive Cursor Spotlight
   function init3DCardTilt() {
-    const targets = document.querySelectorAll('.tour-card, .route-chapters article, .steam-cards article, .gallery-grid figure, .inquiry-card');
+    const targets = document.querySelectorAll('.tour-card, .route-chapters article, .lab-card, .phase-card, .steam-cards article, .gallery-grid figure, .inquiry-card');
     
     targets.forEach(card => {
       card.classList.add('tilt-card');
@@ -196,7 +195,7 @@
   // D. Scroll-Driven Stagger Reveal
   function initScrollReveal() {
     const revealElements = document.querySelectorAll(
-      '.split-heading, .tour-stage, .route-chapters, .map-workspace, .steam-cards, .gallery-grid, .timeline-milestone'
+      '.split-heading, .tour-stage, .route-chapters, .map-workspace, .lab-grid, .phase-grid, .gallery-grid, .steam-cards, .timeline-milestone'
     );
 
     revealElements.forEach(item => {
@@ -218,6 +217,7 @@
   function initBackToTop() {
     const btn = document.getElementById('backToTopBtn');
     const circle = document.getElementById('scrollProgressCircle');
+    const bar = document.getElementById('scrollProgressBar');
     const perimeter = 119.38;
 
     function onScroll() {
@@ -227,6 +227,10 @@
 
       if (circle) {
         circle.style.strokeDashoffset = (perimeter - perimeter * progress).toString();
+      }
+
+      if (bar) {
+        bar.style.width = `${progress * 100}%`;
       }
 
       if (btn) {
@@ -332,15 +336,20 @@
     // Arrow stepper buttons
     if (el.btnPrevTour) {
       el.btnPrevTour.addEventListener('click', () => {
-        let prev = currentTourIdx - 1;
-        if (prev < 0) prev = window.TOURS_DATA.length - 1;
+        let prev = currentTourIdx;
+        do {
+          prev = (prev - 1 + window.TOURS_DATA.length) % window.TOURS_DATA.length;
+        } while (currentFilter !== 'all' && window.TOURS_DATA[prev].catKey !== currentFilter && prev !== currentTourIdx);
         updateTourView(prev);
       });
     }
 
     if (el.btnNextTour) {
       el.btnNextTour.addEventListener('click', () => {
-        let next = (currentTourIdx + 1) % window.TOURS_DATA.length;
+        let next = currentTourIdx;
+        do {
+          next = (next + 1) % window.TOURS_DATA.length;
+        } while (currentFilter !== 'all' && window.TOURS_DATA[next].catKey !== currentFilter && next !== currentTourIdx);
         updateTourView(next);
       });
     }
@@ -376,7 +385,7 @@
           el.tourCards.forEach((card, idx) => {
             const data = window.TOURS_DATA[idx];
             if (filterKey === 'all' || data.catKey === filterKey) {
-              card.style.display = 'inline-flex';
+              card.style.display = '';
               if (firstMatch === -1) firstMatch = idx;
             } else {
               card.style.display = 'none';
@@ -411,9 +420,17 @@
         const frame = document.querySelector('.viewer-frame');
         if (!frame) return;
         if (!document.fullscreenElement) {
-          frame.requestFullscreen ? frame.requestFullscreen() : frame.webkitRequestFullscreen();
+          if (typeof frame.requestFullscreen === 'function') {
+            frame.requestFullscreen();
+          } else if (typeof frame.webkitRequestFullscreen === 'function') {
+            frame.webkitRequestFullscreen();
+          }
         } else {
-          document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen();
+          if (typeof document.exitFullscreen === 'function') {
+            document.exitFullscreen();
+          } else if (typeof document.webkitExitFullscreen === 'function') {
+            document.webkitExitFullscreen();
+          }
         }
       });
     }
@@ -428,6 +445,9 @@
   }
 
   // --- 3. PANORAMA 360° INTERACTIVE MODAL ---
+  let startX = 0, currentPanX = 0;
+  let currentZoom = 1;
+
   function openPanoramaModal(tour) {
     let modal = document.getElementById('modal-panorama-360');
     if (!modal) {
@@ -471,8 +491,9 @@
       const viewport = modal.querySelector('#pano-viewport');
       const img = modal.querySelector('#pano-image');
       let isDragging = false;
-      let startX = 0, currentPanX = 0;
-      let currentZoom = 1;
+      startX = 0;
+      currentPanX = 0;
+      currentZoom = 1;
 
       viewport.addEventListener('mousedown', (e) => {
         isDragging = true;
@@ -480,16 +501,40 @@
         viewport.style.cursor = 'grabbing';
       });
 
+      viewport.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        isDragging = true;
+        startX = e.touches[0].clientX - currentPanX;
+        viewport.style.cursor = 'grabbing';
+      }, { passive: true });
+
       window.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
         currentPanX = e.clientX - startX;
         img.style.transform = `scale(${currentZoom}) translateX(${currentPanX * 0.4}px)`;
       });
 
+      window.addEventListener('touchmove', (e) => {
+        if (!isDragging || e.touches.length !== 1) return;
+        currentPanX = e.touches[0].clientX - startX;
+        img.style.transform = `scale(${currentZoom}) translateX(${currentPanX * 0.4}px)`;
+      }, { passive: true });
+
       window.addEventListener('mouseup', () => {
         isDragging = false;
         viewport.style.cursor = 'grab';
       });
+
+      window.addEventListener('touchend', () => {
+        isDragging = false;
+        viewport.style.cursor = 'grab';
+      });
+
+      viewport.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        currentZoom = Math.min(2.5, Math.max(1, currentZoom - e.deltaY * 0.002));
+        img.style.transform = `scale(${currentZoom}) translateX(${currentPanX * 0.4}px)`;
+      }, { passive: false });
 
       // Zoom controls
       modal.querySelector('#pano-zoom-in').addEventListener('click', () => {
@@ -503,14 +548,23 @@
       modal.querySelector('#pano-reset').addEventListener('click', () => {
         currentZoom = 1;
         currentPanX = 0;
+        startX = 0;
         img.style.transform = `scale(1) translateX(0px)`;
       });
 
       modal.querySelector('#close-pano-modal').addEventListener('click', () => {
         modal.classList.remove('modal-open');
+        const openModals = document.querySelectorAll('.custom-modal.modal-open, #modal-panorama-360.modal-open');
+        if (openModals.length === 0) {
+          document.body.style.overflow = '';
+        }
       });
       modal.querySelector('.modal-backdrop').addEventListener('click', () => {
         modal.classList.remove('modal-open');
+        const openModals = document.querySelectorAll('.custom-modal.modal-open, #modal-panorama-360.modal-open');
+        if (openModals.length === 0) {
+          document.body.style.overflow = '';
+        }
       });
     }
 
@@ -519,10 +573,21 @@
     modal.querySelector('#pano-coords').textContent = tour.coords;
     modal.querySelector('#pano-steam-info').innerHTML = `<strong>LIÊN HỆ STEAM:</strong> ${tour.steamLink}`;
     modal.querySelector('#pano-external-btn').href = tour.externalUrl;
+
+    // Reset zoom and pan on opening a new tour
+    currentZoom = 1;
+    currentPanX = 0;
+    startX = 0;
+    const panoImg = modal.querySelector('#pano-image');
+    if (panoImg) panoImg.style.transform = 'scale(1) translateX(0px)';
+
+    document.body.style.overflow = 'hidden';
     modal.classList.add('modal-open');
   }
 
   // --- 4. TACTICAL MAP & HOTSPOTS CONTROLLER (#map) ---
+  let hasPlayedVictoryFanfare = false;
+
   function updateHotspot(index, playSound = true) {
     if (!window.HOTSPOTS_DATA || !window.HOTSPOTS_DATA[index]) return;
     currentHotspotIdx = index;
@@ -536,13 +601,12 @@
     // Update pins
     if (el.mapPins) {
       el.mapPins.forEach((pin, idx) => {
-        if (idx === index) {
-          pin.classList.add('active');
-          pin.setAttribute('aria-selected', 'true');
-        } else {
-          pin.classList.remove('active');
-          pin.removeAttribute('aria-selected');
-        }
+        const pinData = window.HOTSPOTS_DATA[idx];
+        const isCurrent = idx === index;
+        pin.classList.toggle('active', isCurrent);
+        pin.classList.toggle('visited', !isCurrent && visitedHotspots.has(pinData.id));
+        if (isCurrent) pin.setAttribute('aria-selected', 'true');
+        else pin.removeAttribute('aria-selected');
       });
     }
 
@@ -582,9 +646,18 @@
     if (el.hotspotProgressBar) {
       el.hotspotProgressBar.style.width = `${(count / 10) * 100}%`;
     }
+
+    if (count === 10 && !hasPlayedVictoryFanfare && window.SiteAudio && typeof window.SiteAudio.playSuccess === 'function') {
+      hasPlayedVictoryFanfare = true;
+      window.SiteAudio.playSuccess();
+    }
   }
 
   function initTacticalMap() {
+    const initialMap = document.querySelector('.strategy-map');
+    if (initialMap && !initialMap.classList.contains('mode-journey') && !initialMap.classList.contains('mode-system')) {
+      initialMap.classList.add('mode-journey');
+    }
     // Pin clicks
     if (el.mapPins) {
       el.mapPins.forEach((pin, idx) => {
@@ -682,13 +755,26 @@
 
       modal.querySelector('.modal-close').addEventListener('click', () => {
         modal.classList.remove('modal-open');
+        const openModals = document.querySelectorAll('.custom-modal.modal-open, #modal-panorama-360.modal-open');
+        if (openModals.length === 0) {
+          document.body.style.overflow = '';
+        }
       });
       modal.querySelector('.modal-backdrop').addEventListener('click', () => {
         modal.classList.remove('modal-open');
+        const openModals = document.querySelectorAll('.custom-modal.modal-open, #modal-panorama-360.modal-open');
+        if (openModals.length === 0) {
+          document.body.style.overflow = '';
+        }
       });
     } else {
+      const badgeEl = modal.querySelector('.modal-badge');
+      if (badgeEl) badgeEl.textContent = badge;
+      const titleEl = modal.querySelector('h3');
+      if (titleEl) titleEl.textContent = title;
       modal.querySelector('.modal-body').innerHTML = contentHtml;
     }
+    document.body.style.overflow = 'hidden';
     modal.classList.add('modal-open');
   }
 
@@ -969,7 +1055,16 @@
         if (window.SiteAudio) window.SiteAudio.playClick();
         const expanded = el.menuToggle.getAttribute('aria-expanded') === 'true';
         el.menuToggle.setAttribute('aria-expanded', !expanded);
+        el.mainNav.classList.toggle('is-open');
         el.mainNav.classList.toggle('nav-open');
+      });
+
+      // Close menu on link click
+      el.mainNav.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          el.mainNav.classList.remove('is-open', 'nav-open');
+          el.menuToggle.setAttribute('aria-expanded', 'false');
+        });
       });
     }
 
@@ -1003,6 +1098,11 @@
     // Audio mute toggle button
     const audioToggle = document.getElementById('audio-toggle-btn');
     if (audioToggle) {
+      // Sync initial mute state
+      if (window.SiteAudio && window.SiteAudio.isMuted) {
+        audioToggle.classList.add('muted');
+        audioToggle.setAttribute('title', 'Bật âm thanh hiệu ứng');
+      }
       audioToggle.addEventListener('click', () => {
         if (window.SiteAudio) {
           const muted = window.SiteAudio.toggleMute();
@@ -1011,6 +1111,21 @@
         }
       });
     }
+
+    // Global ESC key listener to close open modals and mobile menu
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        const openModals = document.querySelectorAll('.custom-modal.modal-open, #modal-panorama-360.modal-open');
+        if (openModals.length > 0) {
+          openModals.forEach(m => m.classList.remove('modal-open'));
+          document.body.style.overflow = '';
+        }
+        if (el.mainNav && (el.mainNav.classList.contains('is-open') || el.mainNav.classList.contains('nav-open'))) {
+          el.mainNav.classList.remove('is-open', 'nav-open');
+          if (el.menuToggle) el.menuToggle.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
   }
 
   // --- 8. INITIALIZE EVERYTHING ON DOM READY ---
