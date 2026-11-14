@@ -898,7 +898,7 @@
             <tbody>
               <tr>
                 <td><strong>Độ cao so với lòng chảo</strong></td>
-                <td>+49 mét (ngang tầm mắt hầm chỉ huy)</td>
+                <td>+32 mét (khống chế trực tiếp phân khu trung tâm)</td>
                 <td><strong>+50 mét (cao nhất dãy đồi phía Đông)</strong></td>
               </tr>
               <tr>

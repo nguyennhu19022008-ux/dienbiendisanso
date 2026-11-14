@@ -31,7 +31,7 @@ const TOURS_DATA = [
     coords: "21°23'14\" N · 103°01'06\" E",
     latLng: "21.387° N · 103.018° E",
     image: "images/a1.webp",
-    externalUrl: "https://demo.egal.vn/dienbien/data/2/",
+    externalUrl: "https://demo.egal.vn/dienbien/data/3/",
     desc: "Cứ điểm kiên cố nhất của phân khu trung tâm, nơi diễn ra 39 ngày đêm chiến đấu giằng co ác liệt từng mét chiến hào. Đỉnh đồi còn lưu lại hố bộc phá 960kg TNT sâu 13m và xác xe tăng Bazeilles của quân viễn chinh Pháp.",
     mission: "Quan sát độ sâu và đường kính hố bộc phá 960kg TNT. Đối chiếu với cấu trúc lô cốt 'cây rơm' ngầm của Pháp để hiểu vì sao chỉ có sức ép nổ ngầm mới triệt tiêu được công sự kiên cố này.",
     viewpoints: [
@@ -52,7 +52,7 @@ const TOURS_DATA = [
     coords: "21°23'42\" N · 103°01'25\" E",
     latLng: "21.395° N · 103.023° E",
     image: "images/d1.webp",
-    externalUrl: "https://demo.egal.vn/dienbien/data/3/",
+    externalUrl: "https://demo.egal.vn/dienbien/data/2/",
     desc: "Cao điểm khống chế cao nhất dãy đồi phía Đông (cao hơn lòng chảo 50m). Ngày nay, đây là nơi đặt Quần thể Tượng đài Chiến thắng Điện Biên Phủ bằng đồng sừng sững, biểu tượng tự hào của dân tộc.",
     mission: "Đứng từ đỉnh D1 quan sát 360 độ toàn cảnh cánh đồng Mường Thanh, sông Nậm Rốm và sân bay dã chiến. Đánh giá tầm bao quát hỏa lực khi ta làm chủ cao điểm này.",
     viewpoints: [
@@ -260,7 +260,7 @@ const HOTSPOTS_DATA = [
     name: "Cứ điểm Đồi D1",
     layer: "Chiến đấu",
     layerKey: "battle",
-    time: "30/03 – 01/05/1954",
+    time: "30/03 – 01/04/1954",
     image: "images/d1.webp",
     left: "59%", top: "58%",
     tourId: 3,
