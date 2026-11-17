@@ -1888,13 +1888,13 @@
       routeIds.forEach(id => {
         const n = nodeMap[id];
         if (n) {
-          riskPenalty += n.risk * 0.45;
+          riskPenalty += n.risk * 0.22;
           if (n.risk >= 40) unsafeCount++;
         }
       });
 
       const finished = routeIds[routeIds.length - 1] === 'N8';
-      const safetyScore = Math.max(15, Math.min(98, Math.round(100 - riskPenalty)));
+      const safetyScore = Math.max(15, Math.min(98, Math.round(100 - riskPenalty - unsafeCount * 22)));
 
       let diagnosis = 'Bắt đầu từ Kho Pha Đin (N1). Nhấp vào trạm tiếp theo có vòng tròn viền vàng để nối tuyến.';
       if (routeIds.length > 1) {

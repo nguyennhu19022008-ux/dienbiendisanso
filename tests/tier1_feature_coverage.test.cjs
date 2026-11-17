@@ -292,10 +292,10 @@ suite('Tier 1: Feature Coverage — Production Build & dist/ Integrity', () => {
     });
   });
 
-  test('index.html references ?v=20261117 on all 5 assets in assets/', () => {
+  test('index.html references ?v=202611172 on all 5 assets in assets/', () => {
     const html = fs.readFileSync(path.join(PROJECT_ROOT, 'index.html'), 'utf8');
     REQUIRED_ASSETS.forEach(asset => {
-      assertIncludes(html, `assets/${asset}?v=20261117`, `index.html must reference assets/${asset}?v=20261117`);
+      assertIncludes(html, `assets/${asset}?v=202611172`, `index.html must reference assets/${asset}?v=202611172`);
     });
   });
 
@@ -313,11 +313,12 @@ suite('Tier 1: Feature Coverage — Production Build & dist/ Integrity', () => {
     const nodes = doc.querySelectorAll('#logisticsSvgBoard [data-lg-node]');
     assertEqual(nodes.length, 8, 'Logistics route map must render 8 tactical supply nodes');
 
-    // Optimal route button fills N1 -> N8 route
+    // Optimal route button fills N1 -> N8 route with >= 80% safety score
     const btnOptimal = doc.getElementById('btnRouteOptimal');
     assert(btnOptimal, 'Optimal route button must exist');
     btnOptimal.click();
     assertIncludes(doc.getElementById('routeTelemetryBar').textContent, 'N1 → N2 → N3 → N5 → N7 → N8', 'Optimal route must trace safe corridor');
+    assertIncludes(doc.getElementById('routeTelemetryBar').textContent, '85%', 'Optimal route must score >= 80% (85%)');
 
     // Bike simulator recalculates cleanly
     const loadInput = doc.getElementById('kitBikeLoad');

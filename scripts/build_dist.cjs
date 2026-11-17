@@ -333,7 +333,7 @@ function verifyDist(outDir, options = {}) {
 
   // 2. Verify cache-busting query strings on assets
   for (const asset of REQUIRED_ASSETS) {
-    const expectedRef = `assets/${asset}?v=20261117`;
+    const expectedRef = `assets/${asset}?v=202611172`;
     if (!indexHtml.includes(expectedRef)) {
       throw new Error(`dist/index.html missing cache-busting version query: ${expectedRef}`);
     }
@@ -341,7 +341,7 @@ function verifyDist(outDir, options = {}) {
   }
 
   // 3. Verify absence of any unversioned asset references in index.html
-  const unversionedAssetRegex = /assets\/[a-zA-Z0-9_-]+\.(?:js|css)(?!\?v=20261117)/g;
+  const unversionedAssetRegex = /assets\/[a-zA-Z0-9_-]+\.(?:js|css)(?!\?v=202611172)/g;
   const unversionedMatches = indexHtml.match(unversionedAssetRegex);
   if (unversionedMatches && unversionedMatches.length > 0) {
     throw new Error(`dist/index.html contains unversioned asset reference(s): ${unversionedMatches.join(', ')}`);
