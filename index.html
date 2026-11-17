@@ -18,8 +18,8 @@
   <link rel="preload" as="image" href="images/him-lam-memorial.webp" />
 
   <!-- Base & Interactive Stylesheets -->
-  <link rel="stylesheet" href="assets/site_styles.css?v=20261114" />
-  <link rel="stylesheet" href="assets/interactive_enhancements.css?v=20261114" />
+  <link rel="stylesheet" href="assets/site_styles.css?v=20261117" />
+  <link rel="stylesheet" href="assets/interactive_enhancements.css?v=20261117" />
 </head>
 <body>
 
@@ -46,6 +46,7 @@
         <a href="#route">Hành trình</a>
         <a href="#map">Bản đồ hệ thống</a>
         <a href="#steam">Phòng học STEAM</a>
+        <a href="#classroom-kit">Gói trải nghiệm</a>
       </nav>
       <div style="display:flex; align-items:center; gap:0.75rem;">
         <button class="audio-toggle-btn" id="audio-toggle-btn" type="button" title="Bật/Tắt âm thanh hiệu ứng">
@@ -529,10 +530,261 @@
           <article class="lab-card accent-green">
             <span class="lab-code">M · MATHEMATICS</span>
             <div class="lab-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg></div>
-            <h3>Góc nhìn &amp; dữ liệu</h3>
-            <p>Chia ảnh toàn cảnh thành các vùng, gắn nhãn điểm quan sát và tính độ phủ thông tin của một tour.</p>
-            <strong>15 phút · Quyết định nhóm · Nhấp để thử nghiệm ↗</strong>
+            <h3>Xe đạp thồ &amp; Hậu cần</h3>
+            <p>Tính tải trọng xe đạp thồ, tỷ lệ gạo tiêu hao dọc đường và hiệu suất tiếp tế xuyên lòng chảo.</p>
+            <strong>15 phút · Bộ mô phỏng tương tác · Nhấp để thử ↗</strong>
           </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Classroom Experience Package Section (45-60 Min Lesson Kit) -->
+    <section class="classroom-section" id="classroom-kit">
+      <div class="section-shell">
+        <div class="classroom-header">
+          <div class="classroom-title-block">
+            <p class="eyebrow"><span></span> Kịch bản trải nghiệm lớp học · 45–60 phút</p>
+            <h2>Gói thực hành <em>Học cụ số &amp; STEAM</em></h2>
+            <p class="classroom-lead">Tích hợp trọn vẹn quy trình 5 bước trên lớp: Thẻ nhiệm vụ gắn Tour 3D, Bộ mô phỏng Xe đạp thồ, Bản đồ vạch tuyến hậu cần, Nộp bài nhóm trực tuyến và Bảng Rubric chấm điểm.</p>
+          </div>
+          <div class="classroom-toolbar">
+            <div class="class-timer-widget" aria-label="Đồng hồ điều phối tiết học">
+              <div class="timer-display-group">
+                <span class="timer-label">ĐỒNG HỒ TIẾT HỌC</span>
+                <strong id="classTimerDisplay">15:00</strong>
+              </div>
+              <div class="timer-presets">
+                <button type="button" data-timer-min="5" title="Đặt 5 phút (Khởi động / Đánh giá)">5p</button>
+                <button type="button" data-timer-min="10" title="Đặt 10 phút (Báo cáo)">10p</button>
+                <button type="button" data-timer-min="15" class="active" title="Đặt 15 phút (Khám phá số)">15p</button>
+                <button type="button" data-timer-min="20" title="Đặt 20 phút (Thực hành STEAM)">20p</button>
+              </div>
+              <div class="timer-actions">
+                <button type="button" id="classTimerToggle" class="timer-btn-main" title="Bắt đầu hoặc tạm dừng đếm giờ">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+                  <span>Chạy giờ</span>
+                </button>
+                <button type="button" id="classTimerReset" class="timer-btn-reset" title="Đặt lại đồng hồ">Đặt lại</button>
+              </div>
+            </div>
+            <button type="button" id="btnPrintClassroomKit" class="button-print-kit">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              <span>In Bản đồ A3 &amp; Phiếu học tập</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5-Step Classroom Workflow Strip -->
+        <div class="workflow-strip" id="classroomWorkflowStrip" role="list" aria-label="Quy trình 5 bước buổi trải nghiệm">
+          <!-- Rendered by JS from CLASSROOM_KIT_DATA.workflowSteps -->
+        </div>
+
+        <!-- 4 Workbench Tabs -->
+        <div class="workbench-tabs" role="tablist" aria-label="Công cụ thực hành lớp học">
+          <button type="button" role="tab" class="wb-tab active" data-wb-tab="missions" aria-selected="true">
+            <span class="wb-num">01</span>
+            <span>Thẻ nhiệm vụ &amp; Dữ kiện 3D</span>
+          </button>
+          <button type="button" role="tab" class="wb-tab" data-wb-tab="logistics" aria-selected="false">
+            <span class="wb-num">02</span>
+            <span>Tình huống &amp; Tuyến hậu cần</span>
+          </button>
+          <button type="button" role="tab" class="wb-tab" data-wb-tab="submit" aria-selected="false">
+            <span class="wb-num">03</span>
+            <span>Phiếu nộp kết quả nhóm</span>
+          </button>
+          <button type="button" role="tab" class="wb-tab" data-wb-tab="rubric" aria-selected="false">
+            <span class="wb-num">04</span>
+            <span>Bảng tiêu chí Rubric</span>
+          </button>
+        </div>
+
+        <!-- Tab Panels Container -->
+        <div class="workbench-panels">
+          <!-- Panel 1: Focus Missions -->
+          <div class="wb-panel active" id="wb-panel-missions" role="tabpanel">
+            <div class="wb-panel-intro">
+              <div>
+                <strong>Bước 1–2 · Khám phá không gian trọng tâm</strong>
+                <p>Chọn 1 trong 3 cứ điểm mẫu bên dưới, mở Tour 360° để tìm đúng thông số kỹ thuật lịch sử điền vào Phiếu học tập nhóm.</p>
+              </div>
+              <span class="wb-pill-meta">Mường Phăng · Đồi A1 · Đồi D1</span>
+            </div>
+            <div class="focus-missions-grid" id="focusMissionsGrid">
+              <!-- Populated by interactive_engine.js -->
+            </div>
+          </div>
+
+          <!-- Panel 2: Situation Cards + Bicycle Logistics Calculator + Interactive Route Planner -->
+          <div class="wb-panel" id="wb-panel-logistics" role="tabpanel">
+            <div class="logistics-split">
+              <!-- Left: Situation Cards & Logistics Calculator -->
+              <div class="logistics-left">
+                <div class="subblock-header">
+                  <strong>Bộ 4 Thẻ Tình Huống Nhóm</strong>
+                  <div class="situation-pills" id="situationPills">
+                    <!-- Populated by JS -->
+                  </div>
+                </div>
+                <div class="situation-stage" id="situationStage">
+                  <!-- Populated by JS -->
+                </div>
+
+                <div class="bike-simulator-box">
+                  <div class="subblock-header">
+                    <strong>Công cụ tính toán Xe đạp thồ &amp; Tiêu hao</strong>
+                    <span class="badge-inline">THỰC HÀNH TOÁN – LÝ</span>
+                  </div>
+                  <div class="bike-sliders-grid">
+                    <label class="bike-slider-item">
+                      <span>Tải trọng 1 xe thồ: <strong id="kitBikeLoadVal">220 kg</strong></span>
+                      <input type="range" id="kitBikeLoad" min="100" max="352" value="220" step="10" />
+                    </label>
+                    <label class="bike-slider-item">
+                      <span>Khối lượng gạo mục tiêu: <strong id="kitRiceTargetVal">12 tấn</strong></span>
+                      <input type="range" id="kitRiceTarget" min="2" max="50" value="12" step="1" />
+                    </label>
+                    <label class="bike-slider-item">
+                      <span>Độ dốc tuyến đèo (%): <strong id="kitSlopeVal">15%</strong></span>
+                      <input type="range" id="kitSlope" min="0" max="30" value="15" step="5" />
+                    </label>
+                    <label class="bike-slider-item">
+                      <span>Cự ly kho hậu phương: <strong id="kitDistVal">200 km</strong></span>
+                      <input type="range" id="kitDist" min="50" max="350" value="200" step="25" />
+                    </label>
+                  </div>
+                  <div class="bike-results-strip" id="kitBikeResults">
+                    <!-- Computed live by JS -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Interactive Route Map Canvas -->
+              <div class="logistics-right">
+                <div class="subblock-header">
+                  <strong>Bản đồ Vạch Tuyến Hậu Cần Mô Phỏng</strong>
+                  <div class="route-canvas-actions">
+                    <button type="button" id="btnRouteUndo">Hoàn tác</button>
+                    <button type="button" id="btnRouteClear">Vạch lại</button>
+                    <button type="button" id="btnRouteOptimal" class="btn-outline-gold">Gợi ý tuyến mẫu</button>
+                  </div>
+                </div>
+                <p class="route-help-text">Nhấp tuần tự từ trạm <strong>N1 (Kho Pha Đin)</strong> đến <strong>N8 (Trận địa A1)</strong> để nối lộ trình vận chuyển của nhóm bạn.</p>
+                <div class="logistics-map-board">
+                  <svg id="logisticsSvgBoard" viewBox="0 0 640 450" role="img" aria-label="Bản đồ tương tác vạch tuyến hậu cần Điện Biên Phủ">
+                    <!-- Grid & Terrain Contours + Dynamic Edges & Nodes rendered by JS -->
+                  </svg>
+                </div>
+                <div class="route-telemetry-bar" id="routeTelemetryBar">
+                  <!-- Telemetry readout computed live by JS -->
+                </div>
+                <button type="button" id="btnApplyRouteToForm" class="btn-apply-route">
+                  Đưa kết quả tuyến &amp; số liệu vào Phiếu nộp bài →
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 3: Quick Group Submission & Google Form Integration -->
+          <div class="wb-panel" id="wb-panel-submit" role="tabpanel">
+            <div class="submit-split">
+              <form class="group-submit-form" id="groupSubmitForm">
+                <div class="subblock-header">
+                  <strong>Phiếu nộp bài trực tiếp (Bước 3–4)</strong>
+                  <span class="badge-inline">THU BÀI NHANH CUỐI BUỔI</span>
+                </div>
+                <div class="form-row-2">
+                  <label class="form-field">
+                    <span>Tên nhóm / Lớp *</span>
+                    <input type="text" id="subGroupName" placeholder="Ví dụ: Nhóm 01 – 11A2 (THPT Nguyễn Du)" required />
+                  </label>
+                  <label class="form-field">
+                    <span>Thẻ tình huống chọn</span>
+                    <select id="subSituation">
+                      <option value="TH-01: Vượt đèo Pha Đin (Xe đạp thồ)">TH-01: Vượt đèo Pha Đin (Xe đạp thồ)</option>
+                      <option value="TH-02: Tỷ lệ tiêu hao Gánh bộ vs Xe thồ">TH-02: Tỷ lệ tiêu hao Gánh bộ vs Xe thồ</option>
+                      <option value="TH-03: Chọn hành lang né hỏa lực">TH-03: Chọn hành lang né hỏa lực</option>
+                      <option value="TH-04: Đào 47m hầm ngầm Đồi A1">TH-04: Đào 47m hầm ngầm Đồi A1</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="form-field">
+                  <span>1. Dữ kiện thu thập từ Tour 3D (Mường Phăng, A1, D1) *</span>
+                  <textarea id="subDataCollected" rows="2" placeholder="Ghi chiều dài hầm Mường Phăng, khối thuốc nổ A1, độ cao D1 hoặc tải trọng xe thồ..."></textarea>
+                </label>
+                <label class="form-field">
+                  <span>2. Kết quả tính toán STEAM &amp; Tuyến hậu cần đã vạch *</span>
+                  <textarea id="subRouteSummary" rows="2" placeholder="Nhấn nút ở Tab 02 để tự động điền tuyến đường &amp; số liệu tính toán, hoặc nhập trực tiếp..."></textarea>
+                </label>
+                <label class="form-field">
+                  <span>3. Lý do lựa chọn phương án &amp; Giới hạn thực tế (Phản tư)</span>
+                  <textarea id="subJustification" rows="2" placeholder="Vì sao chọn đường rừng/chiến hào thay vì Quốc lộ 41? Điều kiện thực tế nào làm tăng hao hụt?"></textarea>
+                </label>
+                <div class="form-actions-bar">
+                  <button type="submit" class="button-submit-local">Lưu bài lên bảng trình chiếu lớp</button>
+                  <button type="button" id="btnCopyReport" class="button-secondary-ink">Sao chép văn bản</button>
+                  <button type="button" id="btnOpenGoogleForm" class="button-gform-open">Mở Google Form lớp học ↗</button>
+                </div>
+                <div class="gform-config-row">
+                  <label>
+                    <span>Link Google Form của nhóm / giáo viên (nếu có):</span>
+                    <div class="gform-input-wrap">
+                      <input type="url" id="googleFormUrlInput" placeholder="https://docs.google.com/forms/d/e/.../viewform" />
+                      <button type="button" id="btnSaveGoogleFormUrl">Gắn link</button>
+                    </div>
+                  </label>
+                </div>
+              </form>
+
+              <div class="submitted-board">
+                <div class="subblock-header">
+                  <strong>Danh sách bài nhóm đã lưu trình chiếu</strong>
+                  <span id="submittedCountBadge">0 bài nộp</span>
+                </div>
+                <div class="submitted-list" id="submittedList">
+                  <!-- Populated from localStorage -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 4: Live Interactive Rubric Scorer -->
+          <div class="wb-panel" id="wb-panel-rubric" role="tabpanel">
+            <div class="rubric-layout">
+              <div class="rubric-table-side">
+                <div class="subblock-header">
+                  <strong>Bảng tiêu chí chấm điểm nhanh (Bước 5 · 5 phút)</strong>
+                  <div class="rubric-group-select">
+                    <label for="rubricGroupName">Nhóm đang chấm:</label>
+                    <input type="text" id="rubricGroupName" placeholder="Nhập tên nhóm (VD: Nhóm 01)" />
+                  </div>
+                </div>
+                <div class="rubric-matrix" id="rubricMatrix">
+                  <!-- Populated by interactive_engine.js -->
+                </div>
+              </div>
+              <aside class="rubric-score-card" id="rubricScoreCard">
+                <span>TỔNG ĐIỂM ĐÁNH GIÁ</span>
+                <div class="score-hero">
+                  <strong id="rubricTotalScore">10.0</strong>
+                  <small>/ 10 điểm</small>
+                </div>
+                <div class="score-rank" id="rubricRankLabel">CHƯA CHỌN ĐỦ 4 TIÊU CHÍ</div>
+                <div class="score-breakdown" id="rubricBreakdown">
+                  <!-- Breakdown rows -->
+                </div>
+                <p class="score-feedback" id="rubricAutoFeedback">Chọn một mức độ ở từng tiêu chí bên trái để tự động tổng hợp điểm và nhận xét cho nhóm báo cáo.</p>
+                <div class="rubric-actions">
+                  <button type="button" id="btnResetRubric">Chấm nhóm mới</button>
+                  <button type="button" id="btnCopyRubric" class="btn-copy-rubric">Sao chép phiếu điểm</button>
+                </div>
+              </aside>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -654,8 +906,8 @@
   </main>
 
   <!-- Core Interactive Scripts -->
-  <script src="assets/site_data.js?v=20261114"></script>
-  <script src="assets/site_audio.js?v=20261114"></script>
-  <script src="assets/interactive_engine.js?v=20261114"></script>
+  <script src="assets/site_data.js?v=20261117"></script>
+  <script src="assets/site_audio.js?v=20261117"></script>
+  <script src="assets/interactive_engine.js?v=20261117"></script>
 </body>
 </html>

@@ -292,11 +292,44 @@ suite('Tier 1: Feature Coverage — Production Build & dist/ Integrity', () => {
     });
   });
 
-  test('index.html references ?v=20260424 on all 5 assets in assets/', () => {
+  test('index.html references ?v=20261117 on all 5 assets in assets/', () => {
     const html = fs.readFileSync(path.join(PROJECT_ROOT, 'index.html'), 'utf8');
     REQUIRED_ASSETS.forEach(asset => {
-      assertIncludes(html, `assets/${asset}?v=20260424`, `index.html must reference assets/${asset}?v=20260424`);
+      assertIncludes(html, `assets/${asset}?v=20261117`, `index.html must reference assets/${asset}?v=20261117`);
     });
+  });
+
+  test('Classroom Kit (Gói trải nghiệm 45-60 phút) renders all 5 workflow steps, 3 missions, 4 situations, bike simulator, SVG route planner & live rubric', () => {
+    const env = createEnvironment(PROJECT_ROOT);
+    env.loadScripts();
+
+    const doc = env.document;
+    assert(env.window.CLASSROOM_KIT_DATA, 'CLASSROOM_KIT_DATA must be exported to window');
+    assertEqual(doc.querySelectorAll('#classroomWorkflowStrip .wf-step').length, 5, 'Must render 5 workflow steps');
+    assertEqual(doc.querySelectorAll('#focusMissionsGrid .mission-dossier-col').length, 3, 'Must render 3 focus mission cards');
+    assertEqual(doc.querySelectorAll('#situationPills .situation-pill').length, 4, 'Must render 4 situation pills');
+
+    // Interactive Route SVG checks
+    const nodes = doc.querySelectorAll('#logisticsSvgBoard [data-lg-node]');
+    assertEqual(nodes.length, 8, 'Logistics route map must render 8 tactical supply nodes');
+
+    // Optimal route button fills N1 -> N8 route
+    const btnOptimal = doc.getElementById('btnRouteOptimal');
+    assert(btnOptimal, 'Optimal route button must exist');
+    btnOptimal.click();
+    assertIncludes(doc.getElementById('routeTelemetryBar').textContent, 'N1 → N2 → N3 → N5 → N7 → N8', 'Optimal route must trace safe corridor');
+
+    // Bike simulator recalculates cleanly
+    const loadInput = doc.getElementById('kitBikeLoad');
+    loadInput.value = '300';
+    loadInput.dispatchEvent(new env.window.Event('input'));
+    assertIncludes(doc.getElementById('kitBikeResults').textContent, '40 lượt xe', '12 tons / 300kg = 40 bike trips');
+
+    // Rubric scorer aggregates total score cleanly
+    const firstLevelBtn = doc.querySelectorAll('.rubric-level-btn')[0];
+    assert(firstLevelBtn, 'First rubric level button must exist');
+    firstLevelBtn.click();
+    assertEqual(doc.getElementById('rubricTotalScore').textContent, '3.0', 'Selecting R1 top level yields 3.0 total score');
   });
 
   test('index.html iframe allow attribute replaces vr with xr-spatial-tracking; fullscreen', () => {

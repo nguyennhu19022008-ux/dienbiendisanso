@@ -1082,15 +1082,22 @@
         badge: "TOÁN THỐNG KÊ & TÍNH TOÁN NĂNG LƯỢNG",
         html: `
           <div class="lab-simulation">
-            <div class="sim-readouts">
-              <div class="sim-readout"><span>Lực lượng dân công:</span><strong>261.453 người (hơn 12 triệu ngày công)</strong></div>
-              <div class="sim-readout"><span>Gạo vận chuyển tới đích:</span><strong>25.056 tấn</strong></div>
-              <div class="sim-readout"><span>Kỷ lục xe đạp thồ:</span><strong>352 kg / 1 xe (dân công Ma Văn Thắng)</strong></div>
-              <div class="sim-readout"><span>Khối thuốc nổ hầm A1:</span><strong>960 kg TNT (sức nổ thổi bay 13m đất đá)</strong></div>
+            <p>Kéo thanh trượt để kiểm chứng bài toán hậu cần giữa <strong>Xe đạp thồ cải tiến</strong> và <strong>Gánh bộ truyền thống</strong>:</p>
+            <div class="sim-control-group">
+              <label>Tải trọng 1 xe đạp thồ: <strong id="modal-bike-load-val">250 kg</strong></label>
+              <input type="range" id="modal-bike-load-slider" min="80" max="352" value="250" step="10" style="width:100%; margin: 0.4rem 0 0.8rem;" />
+              <label>Mục tiêu gạo đưa tới đích: <strong id="modal-bike-tons-val">20 tấn</strong></label>
+              <input type="range" id="modal-bike-tons-slider" min="5" max="100" value="20" step="5" style="width:100%; margin: 0.4rem 0;" />
+            </div>
+            <div class="sim-readouts" id="modal-bike-readouts">
+              <div class="sim-readout"><span>Số lượt Xe đạp thồ:</span><strong id="modal-bike-trips">80 chuyến</strong></div>
+              <div class="sim-readout"><span>Số lượt Dân công gánh bộ (25kg):</span><strong id="modal-foot-trips">800 lượt</strong></div>
+              <div class="sim-readout"><span>Kỷ lục dân công Ma Văn Thắng:</span><strong>352 kg / 1 xe</strong></div>
+              <div class="sim-readout"><span>Hiệu suất tăng so với gánh bộ:</span><strong id="modal-bike-gain">Gấp 10.0 lần</strong></div>
             </div>
             <div class="steam-box" style="margin-top:1rem;">
-              <strong>MỐI LIÊN HỆ TOÁN HỌC:</strong>
-              <p>Mỗi kg gạo đưa được vào lòng chảo đòi hỏi người tiếp tế phải ăn tiêu thụ trung bình 4kg gạo trên đường đi. Để giải bài toán vận tải này, ông cha ta đã sáng chế ra xe đạp thồ tăng năng suất gấp 10-15 lần gánh bộ.</p>
+              <strong>MỐI LIÊN HỆ TOÁN HỌC &amp; HẬU CẦN:</strong>
+              <p>Với cung đường 250 km đi về mất ~16 ngày, mỗi người gánh bộ tự ăn hết gần 19 kg dọc đường, chỉ giao được ~6 kg thực tế. Xe đạp thồ cải tiến giúp giảm 90% nhân lực tiêu hao dọc tuyến.</p>
             </div>
           </div>
         `
@@ -1105,7 +1112,7 @@
       const slider = document.getElementById('sim-height-slider');
       if (slider) {
         slider.addEventListener('input', (e) => {
-          const h = parseInt(e.target.value);
+          const h = parseInt(e.target.value, 10);
           const los = (3.57 * Math.sqrt(h)).toFixed(1);
           const deg = (-0.084 * h).toFixed(1);
           const dead = Math.max(3, 20 - Math.floor(h / 4));
@@ -1116,6 +1123,29 @@
           document.getElementById('sim-dead-zone').textContent = `Chỉ ${dead}% lòng chảo`;
         });
       }
+    }
+
+    // If Mathematics tab, wire up bicycle logistics sliders
+    if (index === 3) {
+      const loadSlider = document.getElementById('modal-bike-load-slider');
+      const tonsSlider = document.getElementById('modal-bike-tons-slider');
+      const syncModalBike = () => {
+        if (!loadSlider || !tonsSlider) return;
+        const stats = computeBikeLogistics(
+          parseInt(loadSlider.value, 10),
+          parseInt(tonsSlider.value, 10),
+          15,
+          200
+        );
+        document.getElementById('modal-bike-load-val').textContent = `${stats.loadKg} kg`;
+        document.getElementById('modal-bike-tons-val').textContent = `${stats.tons} tấn`;
+        document.getElementById('modal-bike-trips').textContent = `${stats.bikeTrips} chuyến`;
+        document.getElementById('modal-foot-trips').textContent = `${stats.footTrips} lượt`;
+        document.getElementById('modal-bike-gain').textContent = `Gấp ${stats.multiplier} lần`;
+      };
+      if (loadSlider) loadSlider.addEventListener('input', syncModalBike);
+      if (tonsSlider) tonsSlider.addEventListener('input', syncModalBike);
+      syncModalBike();
     }
   }
 
@@ -1480,6 +1510,1005 @@
     });
   }
 
+  // --- 7B. CLASSROOM EXPERIENCE KIT (45-60 MIN WORKBENCH) ---
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function showToastNotice(message) {
+    let toast = document.getElementById('db3dToastNotice');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'db3dToastNotice';
+      toast.style.cssText = [
+        'position:fixed', 'bottom:24px', 'left:50%', 'transform:translateX(-50%)',
+        'background:#0a1418', 'color:#e5c985', 'border:1px solid #c69a47',
+        'padding:11px 20px', 'font-size:13px', 'font-weight:700', 'z-index:10050',
+        'box-shadow:0 10px 30px rgba(0,0,0,0.45)', 'opacity:0', 'transition:opacity 0.2s ease',
+        'max-width:90vw', 'text-align:center'
+      ].join(';');
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.opacity = '1';
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => {
+      toast.style.opacity = '0';
+    }, 3200);
+  }
+
+  // Shared logistics calculation helper (used by Modal M & Tab 02 Bike Simulator)
+  function computeBikeLogistics(loadKg, tons, slopePct, distKm) {
+    const targetKg = tons * 1000;
+    // Steep slopes reduce safe load effectiveness slightly above 15%
+    const slopePenalty = slopePct > 15 ? 1 - ((slopePct - 15) * 0.012) : 1;
+    const effectiveLoad = Math.max(80, Math.round(loadKg * slopePenalty));
+    const bikeTrips = Math.ceil(targetKg / effectiveLoad);
+    const footLoad = 25;
+    const footTrips = Math.ceil(targetKg / footLoad);
+
+    // Round-trip days at ~32km/day avg (slower on steep slopes)
+    const speedKmPerDay = Math.max(18, 34 - slopePct * 0.5);
+    const tripDays = Math.max(2, Math.round((distKm * 2) / speedKmPerDay));
+    const selfConsumeKg = +(tripDays * 1.2).toFixed(1);
+
+    const netBikePerTrip = Math.max(0, +(effectiveLoad - selfConsumeKg).toFixed(1));
+    const netFootPerTrip = Math.max(0, +(footLoad - selfConsumeKg).toFixed(1));
+    const multiplier = (effectiveLoad / footLoad).toFixed(1);
+
+    return {
+      loadKg,
+      effectiveLoad,
+      tons,
+      slopePct,
+      distKm,
+      bikeTrips,
+      footTrips,
+      tripDays,
+      selfConsumeKg,
+      netBikePerTrip,
+      netFootPerTrip,
+      multiplier
+    };
+  }
+
+  function initClassroomKit() {
+    const kit = window.CLASSROOM_KIT_DATA;
+    if (!kit) return;
+
+    // 1. Class Timer Widget
+    const timerDisplay = document.getElementById('classTimerDisplay');
+    const timerToggle = document.getElementById('classTimerToggle');
+    const timerReset = document.getElementById('classTimerReset');
+    const presetBtns = document.querySelectorAll('[data-timer-min]');
+
+    let timerPresetSeconds = 15 * 60;
+    let timerRemaining = timerPresetSeconds;
+    let timerInterval = null;
+
+    function formatTimer(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      if (timerToggle) {
+        timerToggle.classList.remove('is-running');
+        const span = timerToggle.querySelector('span');
+        if (span) span.textContent = 'Chạy giờ';
+      }
+    }
+
+    function setTimerMinutes(minutes) {
+      stopTimer();
+      timerPresetSeconds = minutes * 60;
+      timerRemaining = timerPresetSeconds;
+      if (timerDisplay) timerDisplay.textContent = formatTimer(timerRemaining);
+      presetBtns.forEach(b => {
+        b.classList.toggle('active', parseInt(b.getAttribute('data-timer-min'), 10) === minutes);
+      });
+    }
+
+    presetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        const mins = parseInt(btn.getAttribute('data-timer-min'), 10);
+        if (!isNaN(mins)) setTimerMinutes(mins);
+      });
+    });
+
+    if (timerToggle) {
+      timerToggle.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        if (timerInterval) {
+          stopTimer();
+          return;
+        }
+        if (timerRemaining <= 0) timerRemaining = timerPresetSeconds;
+        timerToggle.classList.add('is-running');
+        const span = timerToggle.querySelector('span');
+        if (span) span.textContent = 'Tạm dừng';
+        timerInterval = setInterval(() => {
+          timerRemaining--;
+          if (timerDisplay) timerDisplay.textContent = formatTimer(Math.max(0, timerRemaining));
+          if (timerRemaining <= 0) {
+            stopTimer();
+            showToastNotice('Hết thời gian bước thực hành! Đã đến lúc chuyển bước tiếp theo.');
+          }
+        }, 1000);
+      });
+    }
+
+    if (timerReset) {
+      timerReset.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        stopTimer();
+        timerRemaining = timerPresetSeconds;
+        if (timerDisplay) timerDisplay.textContent = formatTimer(timerRemaining);
+      });
+    }
+
+    // 2. Workbench Tab Switching & Workflow 5-Step Strip
+    const wbTabs = document.querySelectorAll('[data-wb-tab]');
+    const wbPanels = document.querySelectorAll('.wb-panel');
+    const workflowStrip = document.getElementById('classroomWorkflowStrip');
+
+    function activateWbTab(tabKey) {
+      wbTabs.forEach(t => {
+        const isActive = t.getAttribute('data-wb-tab') === tabKey;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      wbPanels.forEach(p => {
+        p.classList.toggle('active', p.id === `wb-panel-${tabKey}`);
+      });
+    }
+
+    wbTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        activateWbTab(tab.getAttribute('data-wb-tab'));
+      });
+    });
+
+    if (workflowStrip) {
+      workflowStrip.innerHTML = kit.workflowSteps.map((s, idx) => `
+        <button type="button" class="wf-step ${idx === 0 ? 'active' : ''}" data-wf-idx="${idx}">
+          <div class="wf-step-top">
+            <span class="wf-step-num">${s.step}</span>
+            <span class="wf-step-time">${s.duration}</span>
+          </div>
+          <strong>${s.title}</strong>
+          <p>${s.activity}</p>
+        </button>
+      `).join('');
+
+      workflowStrip.querySelectorAll('.wf-step').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (window.SiteAudio) window.SiteAudio.playClick();
+          const idx = parseInt(btn.getAttribute('data-wf-idx'), 10);
+          const stepObj = kit.workflowSteps[idx];
+          if (!stepObj) return;
+          workflowStrip.querySelectorAll('.wf-step').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activateWbTab(stepObj.tabTarget);
+          if (!timerInterval) setTimerMinutes(stepObj.minutes);
+        });
+      });
+    }
+
+    // 3. Tab 01: Focus Missions (Mường Phăng, Đồi A1, Đồi D1)
+    const missionsGrid = document.getElementById('focusMissionsGrid');
+    if (missionsGrid) {
+      missionsGrid.innerHTML = kit.focusMissions.map((m, i) => `
+        <article class="mission-dossier-col">
+          <div class="mission-col-media">
+            <img src="${m.image}" alt="${m.title}" />
+            <span class="mission-col-badge">${m.badge} · ${m.duration}</span>
+          </div>
+          <h4>${m.title}</h4>
+          <ul class="mission-q-list">
+            ${m.questions.map(q => `<li>${q}</li>`).join('')}
+          </ul>
+          <div class="mission-hint-box" id="missionHint-${i}">
+            <strong>Dữ kiện đối chiếu chuẩn:</strong> ${m.hintAnswer}
+          </div>
+          <div class="mission-col-actions">
+            <button type="button" class="btn-mission-tour" data-launch-tour="${m.tourIndex}">Vào không gian 3D ↗</button>
+            <button type="button" class="btn-mission-hint" data-toggle-hint="${i}">Đáp án gợi ý</button>
+          </div>
+        </article>
+      `).join('');
+
+      missionsGrid.querySelectorAll('[data-launch-tour]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (window.SiteAudio) window.SiteAudio.playClick();
+          const tIdx = parseInt(btn.getAttribute('data-launch-tour'), 10);
+          if (!isNaN(tIdx)) {
+            updateTourView(tIdx, true);
+            const viewer = document.getElementById('viewer');
+            if (viewer) viewer.scrollIntoView({ behavior: 'smooth' });
+            // Automatically activate live iframe after scroll starts
+            setTimeout(() => {
+              const data = window.TOURS_DATA && window.TOURS_DATA[tIdx];
+              if (el.viewerCover && el.viewerLiveIframe && data) {
+                el.viewerCover.style.display = 'none';
+                el.viewerLiveIframe.src = data.externalUrl;
+                el.viewerLiveIframe.style.display = 'block';
+              }
+            }, 350);
+          }
+        });
+      });
+
+      missionsGrid.querySelectorAll('[data-toggle-hint]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (window.SiteAudio) window.SiteAudio.playClick();
+          const hIdx = btn.getAttribute('data-toggle-hint');
+          const box = document.getElementById(`missionHint-${hIdx}`);
+          if (box) {
+            const isOpen = box.classList.toggle('open');
+            btn.textContent = isOpen ? 'Ẩn gợi ý' : 'Đáp án gợi ý';
+          }
+        });
+      });
+    }
+
+    // 4. Tab 02: Situation Cards + Bike Logistics Calculator + Interactive Route SVG Map
+    let activeSitIdx = 0;
+    const sitPills = document.getElementById('situationPills');
+    const sitStage = document.getElementById('situationStage');
+
+    function renderSituationCard(idx) {
+      activeSitIdx = idx;
+      const card = kit.situationCards[idx];
+      if (!card || !sitStage) return;
+
+      if (sitPills) {
+        sitPills.querySelectorAll('.situation-pill').forEach((p, i) => {
+          p.classList.toggle('active', i === idx);
+        });
+      }
+
+      sitStage.innerHTML = `
+        <span class="sit-tag">${card.tag}</span>
+        <h4>${card.title}</h4>
+        <p>${card.context}</p>
+        <ul class="sit-data-list">
+          ${card.dataPoints.map(dp => `<li>• ${dp}</li>`).join('')}
+        </ul>
+        <div class="sit-task-box">
+          <strong>YÊU CẦU GIẢI QUYẾT CỦA NHÓM:</strong> ${card.task}
+        </div>
+      `;
+    }
+
+    if (sitPills) {
+      sitPills.innerHTML = kit.situationCards.map((c, idx) => `
+        <button type="button" class="situation-pill ${idx === 0 ? 'active' : ''}" data-sit-idx="${idx}">${c.id}</button>
+      `).join('');
+      sitPills.querySelectorAll('.situation-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (window.SiteAudio) window.SiteAudio.playClick();
+          renderSituationCard(parseInt(btn.getAttribute('data-sit-idx'), 10));
+        });
+      });
+    }
+    renderSituationCard(0);
+
+    // Bike Calculator Sliders in Tab 02
+    const kitBikeLoad = document.getElementById('kitBikeLoad');
+    const kitRiceTarget = document.getElementById('kitRiceTarget');
+    const kitSlope = document.getElementById('kitSlope');
+    const kitDist = document.getElementById('kitDist');
+    const kitBikeResults = document.getElementById('kitBikeResults');
+
+    let latestBikeStats = computeBikeLogistics(220, 12, 15, 200);
+
+    function syncKitBikeSimulator() {
+      if (!kitBikeLoad || !kitRiceTarget || !kitSlope || !kitDist || !kitBikeResults) return;
+      const stats = computeBikeLogistics(
+        parseInt(kitBikeLoad.value, 10),
+        parseInt(kitRiceTarget.value, 10),
+        parseInt(kitSlope.value, 10),
+        parseInt(kitDist.value, 10)
+      );
+      latestBikeStats = stats;
+
+      document.getElementById('kitBikeLoadVal').textContent = `${stats.loadKg} kg` + (stats.effectiveLoad < stats.loadKg ? ` (hiệu dụng ${stats.effectiveLoad} kg)` : '');
+      document.getElementById('kitRiceTargetVal').textContent = `${stats.tons} tấn`;
+      document.getElementById('kitSlopeVal').textContent = `${stats.slopePct}%`;
+      document.getElementById('kitDistVal').textContent = `${stats.distKm} km`;
+
+      kitBikeResults.innerHTML = `
+        <div class="bike-res-cell">
+          <span>Số chuyến xe đạp thồ</span>
+          <strong>${stats.bikeTrips} lượt xe</strong>
+          <small>Thay thế ${stats.footTrips} dân công gánh bộ</small>
+        </div>
+        <div class="bike-res-cell">
+          <span>Lương thực thực nhận/chuyến</span>
+          <strong>${stats.netBikePerTrip} kg</strong>
+          <small>Ăn dọc đường ~${stats.selfConsumeKg} kg (${stats.tripDays} ngày đi về)</small>
+        </div>
+        <div class="bike-res-cell">
+          <span>Gánh bộ thực nhận/chuyến</span>
+          <strong>${stats.netFootPerTrip} kg</strong>
+          <small>Xe thồ vượt trội gấp ${stats.multiplier}× sức mang</small>
+        </div>
+      `;
+    }
+
+    [kitBikeLoad, kitRiceTarget, kitSlope, kitDist].forEach(inp => {
+      if (inp) inp.addEventListener('input', syncKitBikeSimulator);
+    });
+    syncKitBikeSimulator();
+
+    // Interactive SVG Route Map (Tab 02 Right)
+    const svgBoard = document.getElementById('logisticsSvgBoard');
+    const telemetryBar = document.getElementById('routeTelemetryBar');
+    let selectedRoute = ['N1'];
+
+    function findEdge(idA, idB) {
+      return kit.logisticsEdges.find(
+        e => (e.from === idA && e.to === idB) || (e.to === idA && e.from === idB)
+      );
+    }
+
+    function getReachableNext(currentId) {
+      const nextIds = new Set();
+      kit.logisticsEdges.forEach(e => {
+        if (e.from === currentId && !selectedRoute.includes(e.to)) nextIds.add(e.to);
+        if (e.to === currentId && !selectedRoute.includes(e.from)) nextIds.add(e.from);
+      });
+      return nextIds;
+    }
+
+    function computeRouteTelemetry(routeIds) {
+      let totalDist = 0;
+      let riskPenalty = 0;
+      let unsafeCount = 0;
+      const nodeMap = {};
+      kit.logisticsNodes.forEach(n => { nodeMap[n.id] = n; });
+
+      for (let i = 0; i < routeIds.length - 1; i++) {
+        const edge = findEdge(routeIds[i], routeIds[i + 1]);
+        if (edge) totalDist += edge.dist;
+      }
+
+      routeIds.forEach(id => {
+        const n = nodeMap[id];
+        if (n) {
+          riskPenalty += n.risk * 0.45;
+          if (n.risk >= 40) unsafeCount++;
+        }
+      });
+
+      const finished = routeIds[routeIds.length - 1] === 'N8';
+      const safetyScore = Math.max(15, Math.min(98, Math.round(100 - riskPenalty)));
+
+      let diagnosis = 'Bắt đầu từ Kho Pha Đin (N1). Nhấp vào trạm tiếp theo có vòng tròn viền vàng để nối tuyến.';
+      if (routeIds.length > 1) {
+        if (unsafeCount > 0) {
+          diagnosis = `CẢNH BÁO HỎA LỰC: Tuyến đi qua ${unsafeCount} vùng trống trải (Quốc lộ 41 hoặc Cánh đồng Mường Thanh). Từ đỉnh Đồi D1 (+50m), pháo địch bắn thẳng trực tiếp vào khu vực này.`;
+        } else if (finished) {
+          diagnosis = `TUYẾN TỐI ƯU: Hành lang rừng kín Mường Phăng kết hợp giao thông hào chữ chi giúp đạt độ an toàn ${safetyScore}%, bảo toàn lương thực vào Trận địa A1.`;
+        } else {
+          diagnosis = 'Đang hành quân qua vùng rừng che phủ & chiến hào. Tiếp tục nối đến Trận địa Đồi A1 (N8) để hoàn tất.';
+        }
+      }
+
+      return { totalDist, safetyScore, finished, unsafeCount, diagnosis, nodeMap };
+    }
+
+    function renderLogisticsBoard() {
+      if (!svgBoard || !telemetryBar) return;
+      const tel = computeRouteTelemetry(selectedRoute);
+      const currentTipId = selectedRoute[selectedRoute.length - 1];
+      const reachableNext = tel.finished ? new Set() : getReachableNext(currentTipId);
+
+      // Build background terrain + firing zone from D1
+      let svgHtml = `
+        <defs>
+          <pattern id="milGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#10252b1a" stroke-width="1" />
+          </pattern>
+          <marker id="routeArrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#9c3b32" />
+          </marker>
+        </defs>
+        <rect width="640" height="450" fill="#e7e3d5" />
+        <rect width="640" height="450" fill="url(#milGrid)" />
+        <!-- Terrain Contours & River Nam Rom -->
+        <path d="M 480,0 Q 430,150 380,260 T 340,450" fill="none" stroke="#476a7b66" stroke-width="8" />
+        <text x="362" y="428" fill="#476a7b" font-size="10" font-weight="700" font-family="sans-serif">Sông Nậm Rốm</text>
+        <!-- Enemy Fire Cone from D1/Him Lam -->
+        <ellipse cx="320" cy="300" rx="130" ry="88" fill="#9c3b3214" stroke="#9c3b3244" stroke-dasharray="5,5" />
+        <text x="242" y="272" fill="#9c3b3299" font-size="9" font-weight="800" letter-spacing="1">VÙNG QUAN SÁT &amp; PHÁO KÍCH TỪ ĐỒI D1</text>
+        <text x="16" y="24" fill="#10252b" font-size="10" font-weight="800" letter-spacing="1.4">BÌNH ĐỒ HÀNH LANG HẬU CẦN ĐIỆN BIÊN (TỶ LỆ MÔ PHỎNG)</text>
+      `;
+
+      // Base dashed network edges
+      kit.logisticsEdges.forEach(e => {
+        const a = tel.nodeMap[e.from];
+        const b = tel.nodeMap[e.to];
+        if (!a || !b) return;
+        const isHighlighted = (e.from === currentTipId && reachableNext.has(e.to)) || (e.to === currentTipId && reachableNext.has(e.from));
+        svgHtml += `
+          <line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"
+            stroke="${isHighlighted ? '#c69a47' : '#10252b38'}"
+            stroke-width="${isHighlighted ? '2.5' : '1.5'}"
+            stroke-dasharray="${e.safe ? 'none' : '5,4'}" />
+          <text x="${(a.x + b.x) / 2}" y="${(a.y + b.y) / 2 - 5}" text-anchor="middle" fill="#47585d" font-size="9" font-weight="700">${e.dist}km</text>
+        `;
+      });
+
+      // Active Drawn Route Polyline
+      if (selectedRoute.length > 1) {
+        for (let i = 0; i < selectedRoute.length - 1; i++) {
+          const a = tel.nodeMap[selectedRoute[i]];
+          const b = tel.nodeMap[selectedRoute[i + 1]];
+          if (a && b) {
+            svgHtml += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#9c3b32" stroke-width="4" marker-end="url(#routeArrow)" />`;
+          }
+        }
+      }
+
+      // 8 Nodes
+      kit.logisticsNodes.forEach(n => {
+        const stepPos = selectedRoute.indexOf(n.id);
+        const isVisited = stepPos !== -1;
+        const isCurrent = n.id === currentTipId;
+        const isReachable = reachableNext.has(n.id);
+        const isDanger = n.risk >= 40;
+
+        let fill = '#faf8f1';
+        let stroke = '#10252b';
+        let textFill = '#0a1418';
+
+        if (isCurrent) {
+          fill = '#9c3b32';
+          stroke = '#0a1418';
+          textFill = '#ffffff';
+        } else if (isVisited) {
+          fill = '#486d5d';
+          stroke = '#0a1418';
+          textFill = '#ffffff';
+        } else if (isReachable) {
+          fill = '#e5c985';
+          stroke = '#9c3b32';
+        } else if (isDanger) {
+          fill = '#fbeae8';
+          stroke = '#9c3b32';
+        }
+
+        svgHtml += `
+          <g class="lg-node-group" data-lg-node="${n.id}">
+            ${isReachable ? `<circle cx="${n.x}" cy="${n.y}" r="22" fill="none" stroke="#9c3b32" stroke-width="1.5" stroke-dasharray="3,3" />` : ''}
+            <circle class="lg-node-circle" cx="${n.x}" cy="${n.y}" r="15" fill="${fill}" stroke="${stroke}" stroke-width="2" />
+            <text x="${n.x}" y="${n.y + 4}" text-anchor="middle" fill="${textFill}" font-size="10" font-weight="800">${n.code}</text>
+            <rect x="${n.x - 52}" y="${n.y + 18}" width="104" height="17" rx="2" fill="#faf8f1ee" stroke="#10252b30" stroke-width="0.7" />
+            <text x="${n.x}" y="${n.y + 30}" text-anchor="middle" fill="#0a1418" font-size="9.5" font-weight="700">${n.short}</text>
+          </g>
+        `;
+      });
+
+      svgBoard.innerHTML = svgHtml;
+
+      svgBoard.querySelectorAll('[data-lg-node]').forEach(g => {
+        g.addEventListener('click', () => {
+          const clickedId = g.getAttribute('data-lg-node');
+          const tip = selectedRoute[selectedRoute.length - 1];
+          if (clickedId === tip) return;
+          if (selectedRoute.includes(clickedId)) {
+            showToastNotice('Trạm này đã có trong lộ trình. Bấm "Hoàn tác" nếu muốn đổi hướng.');
+            return;
+          }
+          if (!findEdge(tip, clickedId)) {
+            showToastNotice(`Không có đường nối trực tiếp từ ${tip} sang ${clickedId}. Hãy chọn trạm có viền nối!`);
+            return;
+          }
+          if (window.SiteAudio) window.SiteAudio.playClick();
+          selectedRoute.push(clickedId);
+          renderLogisticsBoard();
+        });
+      });
+
+      const routeStr = selectedRoute.join(' → ');
+      telemetryBar.innerHTML = `
+        <div class="rt-stat">
+          <span>Lộ trình đã vạch (${selectedRoute.length} trạm)</span>
+          <strong>${routeStr}</strong>
+        </div>
+        <div class="rt-stat">
+          <span>Tổng quãng đường</span>
+          <strong>${tel.totalDist} km</strong>
+        </div>
+        <div class="rt-stat">
+          <span>An toàn chiến thuật</span>
+          <strong style="color:${tel.safetyScore >= 75 ? '#486d5d' : '#9c3b32'}">${tel.safetyScore}%</strong>
+        </div>
+        <div class="rt-diagnosis">${tel.diagnosis}</div>
+      `;
+    }
+
+    const btnUndo = document.getElementById('btnRouteUndo');
+    const btnClear = document.getElementById('btnRouteClear');
+    const btnOptimal = document.getElementById('btnRouteOptimal');
+    const btnApplyRoute = document.getElementById('btnApplyRouteToForm');
+
+    if (btnUndo) {
+      btnUndo.addEventListener('click', () => {
+        if (selectedRoute.length > 1) {
+          if (window.SiteAudio) window.SiteAudio.playClick();
+          selectedRoute.pop();
+          renderLogisticsBoard();
+        }
+      });
+    }
+    if (btnClear) {
+      btnClear.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        selectedRoute = ['N1'];
+        renderLogisticsBoard();
+      });
+    }
+    if (btnOptimal) {
+      btnOptimal.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        selectedRoute = ['N1', 'N2', 'N3', 'N5', 'N7', 'N8'];
+        renderLogisticsBoard();
+        showToastNotice('Đã hiển thị tuyến mẫu tối ưu qua rừng Mường Phăng & giao thông hào!');
+      });
+    }
+    if (btnApplyRoute) {
+      btnApplyRoute.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        const tel = computeRouteTelemetry(selectedRoute);
+        const routeTextarea = document.getElementById('subRouteSummary');
+        const sitSelect = document.getElementById('subSituation');
+        if (sitSelect && kit.situationCards[activeSitIdx]) {
+          sitSelect.selectedIndex = activeSitIdx;
+        }
+        if (routeTextarea) {
+          routeTextarea.value = `Tuyến vạch: ${selectedRoute.join(' → ')} (${tel.totalDist} km, An toàn ${tel.safetyScore}%). ` +
+            `Tính toán Xe thồ: tải ${latestBikeStats.effectiveLoad} kg/xe → cần ${latestBikeStats.bikeTrips} chuyến cho ${latestBikeStats.tons} tấn gạo (gấp ${latestBikeStats.multiplier}× gánh bộ).`;
+        }
+        activateWbTab('submit');
+        showToastNotice('Đã chép thông số tuyến & xe đạp thồ sang Phiếu nộp bài!');
+      });
+    }
+    renderLogisticsBoard();
+
+    // 5. Tab 03: Quick Group Submission & Google Form Integration
+    const STORAGE_SUBS = 'db3d_classroom_submissions_v1';
+    const STORAGE_GFORM = 'db3d_classroom_gform_url_v1';
+
+    let paramGform = null;
+    if (typeof URLSearchParams !== 'undefined' && window.location && window.location.search) {
+      paramGform = new URLSearchParams(window.location.search).get('gform');
+    }
+    if (paramGform && /^https?:\/\//i.test(paramGform)) {
+      try {
+        if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_GFORM, paramGform);
+      } catch (e) {}
+    }
+
+    const gformInput = document.getElementById('googleFormUrlInput');
+    const btnSaveGform = document.getElementById('btnSaveGoogleFormUrl');
+    const btnOpenGform = document.getElementById('btnOpenGoogleForm');
+
+    function getSavedGformUrl() {
+      try {
+        return typeof localStorage !== 'undefined' ? (localStorage.getItem(STORAGE_GFORM) || '') : '';
+      } catch (e) { return ''; }
+    }
+
+    if (gformInput) {
+      gformInput.value = getSavedGformUrl();
+    }
+    if (btnSaveGform && gformInput) {
+      btnSaveGform.addEventListener('click', () => {
+        const val = gformInput.value.trim();
+        if (val && !/^https?:\/\//i.test(val)) {
+          showToastNotice('Link Google Form cần bắt đầu bằng https://');
+          return;
+        }
+        try { localStorage.setItem(STORAGE_GFORM, val); } catch (e) {}
+        showToastNotice(val ? 'Đã lưu link Google Form của lớp học!' : 'Đã xóa link Google Form.');
+      });
+    }
+    if (btnOpenGform) {
+      btnOpenGform.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        const url = (gformInput && gformInput.value.trim()) || getSavedGformUrl();
+        if (url && /^https?:\/\//i.test(url)) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        } else {
+          showToastNotice('Hãy dán đường link Google Form của lớp vào ô cấu hình ngay bên dưới trước khi mở.');
+          if (gformInput) gformInput.focus();
+        }
+      });
+    }
+
+    function loadSubmissions() {
+      try {
+        const raw = localStorage.getItem(STORAGE_SUBS);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveSubmissions(list) {
+      try { localStorage.setItem(STORAGE_SUBS, JSON.stringify(list)); } catch (e) {}
+    }
+
+    function renderSubmissions() {
+      const listEl = document.getElementById('submittedList');
+      const countEl = document.getElementById('submittedCountBadge');
+      const subs = loadSubmissions();
+      if (countEl) countEl.textContent = `${subs.length} bài nộp`;
+      if (!listEl) return;
+
+      if (subs.length === 0) {
+        listEl.innerHTML = `<div class="submitted-empty">Chưa có bài nộp nhóm nào được lưu trên trình duyệt này.<br/>Các nhóm nhập phiếu bên trái rồi bấm <strong>Lưu bài lên bảng trình chiếu lớp</strong> để trình bày ở Bước 4.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = subs.map((item, idx) => `
+        <div class="submitted-item">
+          <div class="submitted-item-head">
+            <strong>${escapeHtml(item.groupName)}</strong>
+            <small>${escapeHtml(item.timestamp)}</small>
+          </div>
+          <p><strong>${escapeHtml(item.situation)}</strong><br/>${escapeHtml(item.routeSummary || item.dataCollected)}</p>
+          <div class="submitted-item-actions">
+            <button type="button" data-proj-sub="${idx}">Chiếu lên bảng</button>
+            <button type="button" data-score-sub="${idx}">Chấm Rubric</button>
+            <button type="button" data-del-sub="${idx}">Xóa</button>
+          </div>
+        </div>
+      `).join('');
+
+      listEl.querySelectorAll('[data-proj-sub]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = loadSubmissions()[parseInt(btn.getAttribute('data-proj-sub'), 10)];
+          if (!item) return;
+          createBaseModal(
+            'modal-group-presentation',
+            `Báo Cáo Nhóm: ${escapeHtml(item.groupName)}`,
+            escapeHtml(item.situation),
+            `
+            <div class="spec-table">
+              <div class="spec-row"><span>Thời gian nộp:</span><strong>${escapeHtml(item.timestamp)}</strong></div>
+              <div class="spec-row"><span>Tình huống:</span><strong>${escapeHtml(item.situation)}</strong></div>
+            </div>
+            <div class="steam-box">
+              <strong>1. DỮ KIỆN THU THẬP TỪ WEB 3D:</strong>
+              <p>${escapeHtml(item.dataCollected || 'Chưa ghi')}</p>
+            </div>
+            <div class="steam-box" style="margin-top:0.85rem;">
+              <strong>2. KẾT QUẢ TÍNH TOÁN &amp; TUYẾN HẬU CẦN:</strong>
+              <p>${escapeHtml(item.routeSummary || 'Chưa ghi')}</p>
+            </div>
+            <div class="steam-box" style="margin-top:0.85rem;">
+              <strong>3. LẬP LUẬN &amp; PHẢN TƯ GIỚI HẠN MÔ HÌNH:</strong>
+              <p>${escapeHtml(item.justification || 'Nhóm trình bày trực tiếp khi báo cáo')}</p>
+            </div>
+            `
+          );
+        });
+      });
+
+      listEl.querySelectorAll('[data-score-sub]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = loadSubmissions()[parseInt(btn.getAttribute('data-score-sub'), 10)];
+          if (!item) return;
+          const rInput = document.getElementById('rubricGroupName');
+          if (rInput) rInput.value = item.groupName;
+          activateWbTab('rubric');
+          showToastNotice(`Đã chuyển sang chấm Rubric cho ${item.groupName}`);
+        });
+      });
+
+      listEl.querySelectorAll('[data-del-sub]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-del-sub'), 10);
+          const cur = loadSubmissions();
+          cur.splice(idx, 1);
+          saveSubmissions(cur);
+          renderSubmissions();
+        });
+      });
+    }
+
+    const submitForm = document.getElementById('groupSubmitForm');
+    if (submitForm) {
+      submitForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        const groupName = document.getElementById('subGroupName').value.trim();
+        const situation = document.getElementById('subSituation').value;
+        const dataCollected = document.getElementById('subDataCollected').value.trim();
+        const routeSummary = document.getElementById('subRouteSummary').value.trim();
+        const justification = document.getElementById('subJustification').value.trim();
+
+        if (!groupName) {
+          showToastNotice('Vui lòng nhập Tên nhóm / Lớp.');
+          return;
+        }
+        const now = new Date();
+        const ts = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} · ${now.getDate()}/${now.getMonth() + 1}`;
+        const subs = loadSubmissions();
+        subs.unshift({ groupName, situation, dataCollected, routeSummary, justification, timestamp: ts });
+        saveSubmissions(subs);
+        renderSubmissions();
+        showToastNotice(`Đã lưu báo cáo của "${groupName}" lên bảng trình chiếu!`);
+      });
+    }
+
+    const btnCopyReport = document.getElementById('btnCopyReport');
+    if (btnCopyReport) {
+      btnCopyReport.addEventListener('click', () => {
+        const g = document.getElementById('subGroupName').value.trim() || 'Nhóm thực hành';
+        const s = document.getElementById('subSituation').value;
+        const d = document.getElementById('subDataCollected').value.trim();
+        const r = document.getElementById('subRouteSummary').value.trim();
+        const j = document.getElementById('subJustification').value.trim();
+        const txt = `BÁO CÁO TRẢI NGHIỆM ĐIỆN BIÊN 3D & STEAM\n- Nhóm: ${g}\n- Tình huống: ${s}\n- Dữ kiện 3D: ${d}\n- Tuyến & Tính toán: ${r}\n- Lập luận & Phản tư: ${j}`;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(txt).then(() => showToastNotice('Đã sao chép toàn bộ báo cáo nhóm!')).catch(() => {});
+        }
+      });
+    }
+    renderSubmissions();
+
+    // 6. Tab 04: Interactive Rubric Scorer (Bước 5 - 5 Phút)
+    const rubricMatrix = document.getElementById('rubricMatrix');
+    const selectedRubricScores = {}; // criterionId -> levelIndex (0..3)
+
+    function updateRubricTotals() {
+      const totalEl = document.getElementById('rubricTotalScore');
+      const rankEl = document.getElementById('rubricRankLabel');
+      const bdEl = document.getElementById('rubricBreakdown');
+      const fbEl = document.getElementById('rubricAutoFeedback');
+
+      let total = 0;
+      let chosenCount = 0;
+      const weakAreas = [];
+
+      if (bdEl) {
+        bdEl.innerHTML = kit.rubricCriteria.map(c => {
+          const lvlIdx = selectedRubricScores[c.id];
+          const chosen = lvlIdx !== undefined ? c.levels[lvlIdx] : null;
+          if (chosen) {
+            total += chosen.score;
+            chosenCount++;
+            if (chosen.score <= c.weight * 0.5) weakAreas.push(c.name.replace(/^\d+\.\s*/, ''));
+          }
+          return `<div class="score-bd-row"><span>${c.name.split(':')[0]}</span><strong>${chosen ? `${chosen.score} / ${c.weight}đ` : '—'}</strong></div>`;
+        }).join('');
+      }
+
+      if (totalEl) totalEl.textContent = total.toFixed(total % 1 === 0 ? 1 : 2);
+
+      if (rankEl) {
+        if (chosenCount < kit.rubricCriteria.length) {
+          rankEl.textContent = `ĐÃ CHẤM ${chosenCount}/${kit.rubricCriteria.length} TIÊU CHÍ`;
+        } else if (total >= 8.5) {
+          rankEl.textContent = 'XUẤT SẮC · MÔ HÌNH CHUẨN MỰC';
+        } else if (total >= 7.0) {
+          rankEl.textContent = 'KHÁ TỐT · LẬP LUẬN CHẶT CHẼ';
+        } else if (total >= 5.0) {
+          rankEl.textContent = 'ĐẠT YÊU CẦU · CẦN BỔ SUNG DỮ LIỆU';
+        } else {
+          rankEl.textContent = 'CẦN LÀM LẠI · CHƯA KHỚP BẢN ĐỒ';
+        }
+      }
+
+      if (fbEl) {
+        if (chosenCount === 0) {
+          fbEl.textContent = 'Nhấp chọn mức độ ở từng tiêu chí bên trái để tự động tổng hợp điểm và nhận xét cho nhóm báo cáo.';
+        } else if (chosenCount < kit.rubricCriteria.length) {
+          fbEl.textContent = `Còn ${kit.rubricCriteria.length - chosenCount} tiêu chí chưa chấm. Nhấp vào các ô bên trái để hoàn tất.`;
+        } else if (weakAreas.length === 0) {
+          fbEl.textContent = 'Nhóm khai thác chính xác thông số từ Tour 360°, tính toán đúng bài toán hậu cần và chọn hành lang an toàn tránh hỏa lực Đồi D1.';
+        } else {
+          fbEl.textContent = `Điểm mạnh: Hoàn thành đúng tiến độ 5 bước. Điểm cần cải thiện thêm: ${weakAreas.join('; ')}.`;
+        }
+      }
+    }
+
+    function renderRubricMatrix() {
+      if (!rubricMatrix) return;
+      rubricMatrix.innerHTML = kit.rubricCriteria.map(c => `
+        <div class="rubric-row-block">
+          <div class="rubric-row-title">
+            <span>${c.name}</span>
+            <span>Tối đa ${c.weight} điểm</span>
+          </div>
+          <div class="rubric-levels-grid">
+            ${c.levels.map((lvl, lIdx) => `
+              <button type="button" class="rubric-level-btn ${selectedRubricScores[c.id] === lIdx ? 'selected' : ''}" data-rcid="${c.id}" data-rlvl="${lIdx}">
+                <strong>${lvl.label}</strong>
+                <span>${lvl.desc}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      rubricMatrix.querySelectorAll('.rubric-level-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (window.SiteAudio) window.SiteAudio.playClick();
+          const cid = btn.getAttribute('data-rcid');
+          const lIdx = parseInt(btn.getAttribute('data-rlvl'), 10);
+          selectedRubricScores[cid] = lIdx;
+          renderRubricMatrix();
+          updateRubricTotals();
+        });
+      });
+    }
+
+    renderRubricMatrix();
+    updateRubricTotals();
+
+    const btnResetRubric = document.getElementById('btnResetRubric');
+    const btnCopyRubric = document.getElementById('btnCopyRubric');
+    if (btnResetRubric) {
+      btnResetRubric.addEventListener('click', () => {
+        Object.keys(selectedRubricScores).forEach(k => delete selectedRubricScores[k]);
+        const rInput = document.getElementById('rubricGroupName');
+        if (rInput) rInput.value = '';
+        renderRubricMatrix();
+        updateRubricTotals();
+      });
+    }
+    if (btnCopyRubric) {
+      btnCopyRubric.addEventListener('click', () => {
+        const gName = (document.getElementById('rubricGroupName') && document.getElementById('rubricGroupName').value.trim()) || 'Nhóm thực hành';
+        const score = document.getElementById('rubricTotalScore').textContent;
+        const rank = document.getElementById('rubricRankLabel').textContent;
+        const fb = document.getElementById('rubricAutoFeedback').textContent;
+        const txt = `PHIẾU ĐÁNH GIÁ RUBRIC - ĐIỆN BIÊN 3D STEAM\n- Nhóm: ${gName}\n- Tổng điểm: ${score}/10 (${rank})\n- Nhận xét: ${fb}`;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(txt).then(() => showToastNotice('Đã sao chép kết quả chấm Rubric!')).catch(() => {});
+        }
+      });
+    }
+
+    // 7. Print A3 Map & Student Worksheet Kit Generator
+    const btnPrintKit = document.getElementById('btnPrintClassroomKit');
+    if (btnPrintKit) {
+      btnPrintKit.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        const printWin = window.open('', '_blank', 'width=1100,height=800');
+        if (!printWin) {
+          showToastNotice('Trình duyệt đang chặn cửa sổ bật lên. Vui lòng cho phép pop-up để in Bộ học cụ A3.');
+          return;
+        }
+
+        const svgCopy = document.getElementById('logisticsSvgBoard') ? document.getElementById('logisticsSvgBoard').outerHTML : '';
+        printWin.document.write(`<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Bộ Học Cụ In Giấy A3 &amp; Phiếu Học Tập — Điện Biên 3D STEAM</title>
+  <style>
+    @page { size: A4 landscape; margin: 12mm; }
+    * { box-sizing: border-box; }
+    body { font-family: "Times New Roman", Georgia, serif; color: #0a1418; margin: 0; padding: 0; line-height: 1.45; }
+    .print-page { page-break-after: always; border: 1.5px solid #0a1418; padding: 14px 18px; }
+    .print-page:last-child { page-break-after: auto; }
+    .p-head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #0a1418; padding-bottom: 8px; margin-bottom: 12px; }
+    .p-head h1 { font-size: 20px; margin: 0; text-transform: uppercase; letter-spacing: 0.04em; }
+    .p-head small { font-size: 11px; color: #364549; }
+    .p-map-grid { display: grid; grid-template-columns: 1.4fr 0.6fr; gap: 16px; align-items: start; }
+    .p-map-box { border: 1px solid #0a1418; }
+    .p-map-box svg { width: 100%; height: auto; display: block; }
+    .p-notes h3 { margin: 0 0 8px; font-size: 14px; border-bottom: 1px solid #0a1418; padding-bottom: 4px; }
+    .p-notes ul { margin: 0; padding-left: 16px; font-size: 12px; }
+    .p-notes li { margin-bottom: 6px; }
+    .p-fill-line { border-bottom: 1px dotted #0a1418; height: 22px; margin-bottom: 6px; }
+    .p-cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .p-card { border: 1px solid #0a1418; padding: 10px 12px; font-size: 11.5px; }
+    .p-card strong { display: block; font-size: 13px; margin-bottom: 4px; color: #9c3b32; }
+    .p-worksheet { margin-top: 12px; border: 1px solid #0a1418; padding: 12px; font-size: 12px; }
+    .p-ws-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
+    @media print {
+      .no-print { display: none !important; }
+    }
+    .no-print-bar { background: #0a1418; color: #e5c985; padding: 10px 18px; display: flex; justify-content: space-between; align-items: center; font-family: sans-serif; font-size: 13px; margin-bottom: 12px; }
+    .no-print-bar button { background: #e5c985; color: #0a1418; border: 0; padding: 7px 14px; font-weight: 700; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="no-print no-print-bar">
+    <span><strong>CHẾ ĐỘ IN HỌC CỤ A3 / A4:</strong> Chọn khổ giấy <strong>A3 Ngang</strong> (Landscape) trong hộp thoại in để bản đồ nét chuẩn nhất.</span>
+    <button onclick="window.print()">In Ngay / Lưu PDF</button>
+  </div>
+
+  <!-- Trang 1: Bản đồ Tuyến hậu cần A3 -->
+  <section class="print-page">
+    <div class="p-head">
+      <div>
+        <h1>Bản Đồ Tuyến Hậu Cần Mô Phỏng · Chiến Dịch Điện Biên Phủ</h1>
+        <small>Gói trải nghiệm "Điện Biên 3D – Di Sản Số &amp; STEAM" · Truy cập tư liệu 3D tại dienbiendisanso.vercel.app</small>
+      </div>
+      <div style="text-align:right; font-size:12px;">
+        <strong>NHÓM: ............................</strong><br/>
+        <span>Lớp: .............. (THPT Nguyễn Du)</span>
+      </div>
+    </div>
+    <div class="p-map-grid">
+      <div class="p-map-box">${svgCopy}</div>
+      <div class="p-notes">
+        <h3>HƯỚNG DẪN THỰC HÀNH TRÊN GIẤY</h3>
+        <ul>
+          <li><strong>Bước 1 (Khám phá 3D):</strong> Truy cập Tour 360° tại <em>Mường Phăng</em> (tìm chiều dài hầm) và <em>Đồi A1</em> (tìm khối thuốc nổ &amp; hầm chữ chi).</li>
+          <li><strong>Bước 2 (Vạch tuyến):</strong> Dùng bút màu đỏ vạch tuyến đường vận chuyển gạo từ <strong>N1 (Kho Pha Đin)</strong> tới <strong>N8 (Trận địa A1)</strong> tránh vùng pháo kích Đồi D1.</li>
+          <li><strong>Bước 3 (Ghi thông số tuyến chọn):</strong></li>
+        </ul>
+        <div style="margin-top:8px; font-size:12px;">
+          Lộ trình (VD: N1 → ...): <div class="p-fill-line"></div>
+          Tổng quãng đường (km): <div class="p-fill-line"></div>
+          Tổng số lượt xe đạp thồ: <div class="p-fill-line"></div>
+          Lượng gạo thực nhận (kg): <div class="p-fill-line"></div>
+          Lý do chọn đường này: <div class="p-fill-line"></div><div class="p-fill-line"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trang 2: Bộ 4 Thẻ Tình Huống & Phiếu học tập nhóm -->
+  <section class="print-page">
+    <div class="p-head">
+      <h1>Bộ 4 Thẻ Tình Huống Hậu Cần &amp; Phiếu Thu Hoạch Nhóm</h1>
+      <small>Cắt rời 4 thẻ phát cho các nhóm hoặc thảo luận theo phân công (15–20 phút)</small>
+    </div>
+    <div class="p-cards-grid">
+      ${kit.situationCards.map(c => `
+        <div class="p-card">
+          <strong>${c.id} · ${c.title}</strong>
+          <p style="margin:3px 0;">${c.context}</p>
+          <ul style="margin:4px 0; padding-left:15px;">
+            ${c.dataPoints.map(dp => `<li>${dp}</li>`).join('')}
+          </ul>
+          <p style="margin:4px 0 0;"><em>Nhiệm vụ:</em> ${c.task}</p>
+        </div>
+      `).join('')}
+    </div>
+    <div class="p-worksheet">
+      <strong>PHIẾU GHI DỮ LIỆU THU THẬP TỪ WEB 3D (MƯỜNG PHĂNG – ĐỒI A1 – ĐỒI D1):</strong>
+      <div class="p-ws-grid">
+        <div>
+          • Đường hầm xuyên núi Mường Phăng dài: .................... m<br/>
+          • Đường hầm chữ chi Đồi A1 dài: .................... m · Thuốc nổ: .................... kg TNT
+        </div>
+        <div>
+          • Độ cao Đồi D1 so với lòng chảo: .................... m · Kỷ lục xe thồ: .................... kg/xe<br/>
+          • Giới hạn mô hình khi áp dụng thực tế: <div class="p-fill-line"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>`);
+        printWin.document.close();
+      });
+    }
+  }
+
   // --- 8. INITIALIZE EVERYTHING ON DOM READY ---
   function init() {
     try { cacheElements(); } catch (err) { console.error('cacheElements error:', err); }
@@ -1494,6 +2523,7 @@
     try { initPhaseModals(); } catch (err) { console.error('initPhaseModals error:', err); }
     try { initGalleryLightbox(); } catch (err) { console.error('initGalleryLightbox error:', err); }
     try { initSteamLab(); } catch (err) { console.error('initSteamLab error:', err); }
+    try { initClassroomKit(); } catch (err) { console.error('initClassroomKit error:', err); }
     try { initHeaderNav(); } catch (err) { console.error('initHeaderNav error:', err); }
 
     try { updateTourView(currentTourIdx, false); } catch (err) { console.error('updateTourView error:', err); }

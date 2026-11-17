@@ -312,7 +312,223 @@ const HOTSPOTS_DATA = [
   }
 ];
 
+// Dữ liệu Gói Trải Nghiệm Lớp Học 45 - 60 Phút (THPT Nguyễn Du - STEAM Heritage Kit)
+const CLASSROOM_KIT_DATA = {
+  workflowSteps: [
+    {
+      step: "01",
+      title: "Khởi động",
+      duration: "5 phút",
+      minutes: 5,
+      tabTarget: "missions",
+      activity: "Nêu tình huống mở đầu và giao nhiệm vụ cho các nhóm trên màn hình chính.",
+      tool: "Màn hình tổng quan Web + Đồng hồ đếm giờ"
+    },
+    {
+      step: "02",
+      title: "Khám phá số",
+      duration: "10–15 phút",
+      minutes: 15,
+      tabTarget: "missions",
+      activity: "Học sinh truy cập Tour 360° (Mường Phăng, Đồi A1, Đồi D1) thu thập dữ kiện địa hình và lịch sử.",
+      tool: "Tour 360° eGAL + Phiếu học tập"
+    },
+    {
+      step: "03",
+      title: "Thực hành STEAM",
+      duration: "15–20 phút",
+      minutes: 20,
+      tabTarget: "logistics",
+      activity: "Giải thẻ tình huống hậu cần, tính toán sức chở xe đạp thồ và vạch tuyến đường tối ưu.",
+      tool: "Mô phỏng Xe đạp thồ + Bản đồ Tuyến A3/Số"
+    },
+    {
+      step: "04",
+      title: "Báo cáo nhóm",
+      duration: "10 phút",
+      minutes: 10,
+      tabTarget: "submit",
+      activity: "Đại diện các nhóm nộp phiếu và trình bày ngắn gọn phương án, lập luận lựa chọn.",
+      tool: "Phiếu nộp nhanh / Google Form lớp học"
+    },
+    {
+      step: "05",
+      title: "Đánh giá",
+      duration: "5 phút",
+      minutes: 5,
+      tabTarget: "rubric",
+      activity: "Chấm điểm nhanh theo tiêu chí (độ chính xác lịch sử, tính hợp lý STEAM) và tổng kết.",
+      tool: "Bảng Rubric tương tác trực tuyến"
+    }
+  ],
+  focusMissions: [
+    {
+      id: "M01",
+      tourIndex: 0,
+      badge: "ĐIỂM NHẤN 01 · CHỈ HUY",
+      title: "Sở chỉ huy Chiến dịch Mường Phăng",
+      image: "images/muong-phang.webp",
+      duration: "5 phút quan sát",
+      questions: [
+        "1. Đường hầm xuyên núi nối lán làm việc của Đại tướng Võ Nguyên Giáp và Bộ Tham mưu dài bao nhiêu mét?",
+        "2. Quan sát tán rừng nguyên sinh Phăng Lăng trong ảnh 360°: đặc điểm địa hình này giúp tránh máy bay trinh sát Pháp ra sao?",
+        "3. Quyết định chuyển phương châm tại đây là gì và nó tác động thế nào đến bài toán vận tải hậu cần?"
+      ],
+      hintAnswer: "Đường hầm dài 320m dưới tán rừng già đa tầng che khuất hoàn toàn khỏi không ảnh và trinh sát thời kỳ đầu; chuyển sang 'Đánh chắc, tiến chắc' đòi hỏi mạng lưới giao thông hào và nguồn cung gạo đạn ổn định suốt 56 ngày đêm."
+    },
+    {
+      id: "M02",
+      tourIndex: 1,
+      badge: "ĐIỂM NHẤN 02 · CHIẾN TRƯỜNG",
+      title: "Cứ điểm Đồi A1 (Eliane 2)",
+      image: "images/a1.webp",
+      duration: "5 phút quan sát",
+      questions: [
+        "1. Ghi lại 3 thông số cốt lõi tại đỉnh Đồi A1: chiều dài đường hầm ngầm, khối lượng thuốc nổ và độ sâu hố bộc phá.",
+        "2. Quan sát địa thế dốc đồi (+32m) và xác xe tăng Bazeilles: vì sao bộ binh xung phong bề mặt bị giằng co tới 39 ngày đêm?",
+        "3. Công binh đã xử lý tiếng động và thông gió trong lòng đồi đất sét nung cứng như thế nào?"
+      ],
+      hintAnswer: "Hầm ngầm chữ chi dài 47m, đặt khối bộc phá 960kg TNT tạo hố sâu 13m. Địch có hầm ngầm bê tông 'cây rơm' nhiều tầng chống được pháo thông thường; công binh dùng xẻng cùn, bọc vải bao tải chuyển đất ban đêm và quạt thông gió tự chế."
+    },
+    {
+      id: "M03",
+      tourIndex: 2,
+      badge: "ĐIỂM NHẤN 03 · ĐỊA HÌNH & HẬU CẦN",
+      title: "Đồi D1 (+50m) & Nút thắt tiếp tế",
+      image: "images/d1.webp",
+      duration: "4 phút quan sát",
+      questions: [
+        "1. Đứng từ đỉnh Đồi D1 (+50m so với lòng chảo), góc quan sát bao quát xuống sân bay Mường Thanh đạt xấp xỉ bao nhiêu độ?",
+        "2. Dữ liệu thống kê trên web cho biết kỷ lục xe đạp thồ chở được tối đa bao nhiêu kg trên một xe?",
+        "3. Từ ưu thế cao điểm phía Đông, nếu đoàn tiếp tế đi qua cánh đồng trống ban ngày thì điều gì sẽ xảy ra?"
+      ],
+      hintAnswer: "Đỉnh D1 cao hơn thung lũng +50m, góc tà xạ giới -4°12' xuống tim đường băng (1.200m). Kỷ lục xe đạp thồ đạt 352 kg/xe (ông Ma Văn Thắng). Đi qua đồng trống ban ngày sẽ lộ thiên hoàn toàn trước hỏa lực pháo binh và máy bay trinh sát địch."
+    }
+  ],
+  situationCards: [
+    {
+      id: "TH-01",
+      tag: "THẺ TÌNH HUỐNG 01 · CƠ HỌC & ĐỘ DỐC",
+      title: "Vượt đèo Pha Đin với Xe đạp thồ tải nặng",
+      context: "Đoàn tiếp tế cần chuyển 12 tấn gạo vượt đoạn dốc đèo dài 24 km có độ dốc trung bình 15%, nền đường đất trơn lầy do mưa xuân Tây Bắc.",
+      dataPoints: [
+        "Tải trọng an toàn tối đa trên dốc 15%: 220 kg/xe",
+        "Định mức xe thô sơ không gia cố khung: tối đa 110 kg/xe",
+        "Tốc độ hành quân leo dốc ban đêm: 2,5 km/giờ"
+      ],
+      task: "Tính số lượt xe tối thiểu để chuyển hết 12 tấn gạo. Đề xuất 2 cải tiến cơ học đơn giản bằng tre/gỗ (thanh gác tay lái, phanh guốc gỗ) giúp 1 người điều khiển giữ được 220 kg mà không gãy khung hoặc trượt dốc."
+    },
+    {
+      id: "TH-02",
+      tag: "THẺ TÌNH HUỐNG 02 · TOÁN HẬU CẦN",
+      title: "Nghịch lý Tiêu hao Lương thực: Gánh bộ vs. Xe thồ",
+      context: "Từ kho hậu phương (Thanh Hóa / Phú Thọ) vào mặt trận dài 250 km. Thời gian cả đi có hàng và về không hàng là 16 ngày.",
+      dataPoints: [
+        "Mỗi dân công tự ăn trên đường đi và về: 1,2 kg gạo/ngày (19,2 kg/chuyến)",
+        "Sức mang tối đa bằng gánh bộ đường dài: 25 kg/người/chuyến",
+        "Sức chở trung bình xe đạp thồ cải tiến: 250 kg/xe/chuyến"
+      ],
+      task: "Tính lượng gạo thực sự còn lại giao cho bộ đội của 1 người gánh bộ so với 1 người đẩy xe thồ. Chứng minh bằng phép tính tỷ lệ tiêu hao (bao nhiêu kg gạo phải ăn dọc đường để đưa được 1 kg vào Điện Biên?)."
+    },
+    {
+      id: "TH-03",
+      tag: "THẺ TÌNH HUỐNG 03 · ĐỊA HÌNH CHIẾN THUẬT",
+      title: "Chọn hành lang vận tải né vùng quan sát hỏa lực",
+      context: "Trước ngày 30/03/1954, địch vẫn kiểm soát sân bay Mường Thanh và các cao điểm Him Lam, Độc Lập, D1, A1, dùng máy bay L-19 trinh sát ban ngày.",
+      dataPoints: [
+        "Bán kính tầm nhìn từ đỉnh D1 (+50m): bao phủ 92% lòng chảo trống",
+        "Độ che phủ tán rừng Phăng Lăng – Khe núi phía Đông Bắc: >85%",
+        "Hệ thống giao thông hào vây lấn sâu 1,5m hình chữ chi 120°"
+      ],
+      task: "Sử dụng Bản đồ Vạch Tuyến bên cạnh, nối các trạm từ Kho Hậu Phương (N1) tới Trận Địa Lòng Chảo (N8) sao cho quãng đường hợp lý nhất nhưng độ an toàn đạt trên 80%. Giải thích vì sao bỏ qua đường Quốc lộ 41 ngắn hơn."
+    },
+    {
+      id: "TH-04",
+      tag: "THẺ TÌNH HUỐNG 04 · KỸ THUẬT CÔNG KIÊN",
+      title: "Bài toán đào 47m hầm ngầm Đồi A1 không tiếng động",
+      context: "Tổ công binh đào đường hầm bí mật dài 47m xuyên vào lòng đồi A1 (đất đồi pha đá vôi cứng) ngay dưới chân hệ thống lô cốt địch.",
+      dataPoints: [
+        "Kích thước tiết diện hầm: rộng 0,9m × cao 1,2m",
+        "Thời gian thi công: 15 ngày đêm liên tục (từ 20/04 – 05/05)",
+        "Khối lượng bộc phá nạp buồng nổ cuối hầm: 960 kg TNT"
+      ],
+      task: "Tính tổng thể tích (m³) đất đá cần đào và trung bình mỗi ngày phải vận chuyển ra ngoài bao nhiêu bao tải đất (1m³ đất ≈ 1,6 tấn). Giải thích cơ chế thông gió không điện bằng ống tre và quạt mo."
+    }
+  ],
+  logisticsNodes: [
+    { id: "N1", code: "N1", name: "Kho Pha Đin", short: "Kho Pha Đin", x: 90, y: 78, terrain: "Đèo núi cao (+15% dốc)", risk: 12, note: "Điểm xuất phát lương thực từ hậu phương Sơn La." },
+    { id: "N2", code: "N2", name: "Khe Rừng Tuần Giáo", short: "Rừng Tuần Giáo", x: 245, y: 66, terrain: "Đường mòn tán rừng", risk: 8, note: "Che phủ rừng rậm, máy bay trinh sát L-19 khó phát hiện." },
+    { id: "N3", code: "N3", name: "Cửa ngõ Mường Phăng", short: "Mường Phăng", x: 420, y: 92, terrain: "Rừng nguyên sinh (320m hầm)", risk: 5, note: "An toàn nhất, sát Sở chỉ huy Chiến dịch." },
+    { id: "N4", code: "N4", name: "Quốc lộ 41 Trống", short: "Quốc lộ 41", x: 255, y: 215, terrain: "Đường nhựa lộ thiên", risk: 45, note: "Ngắn nhưng hoàn toàn lộ trước pháo bắn thẳng & không quân." },
+    { id: "N5", code: "N5", name: "Đường Hào Bắc", short: "Hào Bắc (Độc Lập)", x: 430, y: 210, terrain: "Chiến hào chữ chi 120°", risk: 14, note: "Được thành hào bảo vệ 75% sóng xung kích bom nổ." },
+    { id: "N6", code: "N6", name: "Cánh đồng Mường Thanh", short: "Đồng Mường Thanh", x: 320, y: 315, terrain: "Thung lũng phẳng, không che chắn", risk: 55, note: "Nằm gọn trong góc tà ngắm thẳng -4°12' từ Đồi D1." },
+    { id: "N7", code: "N7", name: "Sườn Đông D1 – C1", short: "Sườn Đông D1", x: 545, y: 270, terrain: "Hào tiếp cận dãy đồi Đông", risk: 18, note: "Tuyến cơ động đêm dọc sườn khuất sau khi làm chủ D1." },
+    { id: "N8", code: "N8", name: "Trận địa Đồi A1", short: "Trận địa A1", x: 515, y: 390, terrain: "Công sự ngầm tiền tiêu", risk: 10, note: "Đích tiếp tế gạo, đạn và khối thuốc nổ công kiên." }
+  ],
+  logisticsEdges: [
+    { from: "N1", to: "N2", dist: 42, safe: true },
+    { from: "N1", to: "N4", dist: 34, safe: false },
+    { from: "N2", to: "N3", dist: 38, safe: true },
+    { from: "N2", to: "N4", dist: 24, safe: false },
+    { from: "N3", to: "N5", dist: 28, safe: true },
+    { from: "N3", to: "N7", dist: 44, safe: true },
+    { from: "N4", to: "N5", dist: 30, safe: false },
+    { from: "N4", to: "N6", dist: 25, safe: false },
+    { from: "N5", to: "N7", dist: 26, safe: true },
+    { from: "N5", to: "N6", dist: 22, safe: false },
+    { from: "N6", to: "N8", dist: 29, safe: false },
+    { from: "N7", to: "N8", dist: 27, safe: true }
+  ],
+  rubricCriteria: [
+    {
+      id: "R1",
+      name: "1. Độ chính xác dữ kiện lịch sử từ Web 3D",
+      weight: 3,
+      levels: [
+        { score: 3.0, label: "Xuất sắc (3.0đ)", desc: "Nêu đúng 100% thông số Mường Phăng (320m), A1 (47m, 960kg TNT), D1 (+50m) và gắn với bối cảnh." },
+        { score: 2.25, label: "Khá tốt (2.25đ)", desc: "Nêu đúng đa số dữ liệu từ Tour 360°, có sai sót nhỏ ở 1 thông số phụ." },
+        { score: 1.5, label: "Đạt (1.5đ)", desc: "Nêu được dữ liệu cơ bản nhưng chưa đối chiếu chéo với địa hình bản đồ." },
+        { score: 0.75, label: "Cần bổ sung (0.75đ)", desc: "Thiếu dữ liệu thực tế từ Web hoặc nhầm lẫn giữa các cứ điểm (ví dụ nhầm A1 và D1)." }
+      ]
+    },
+    {
+      id: "R2",
+      name: "2. Tư duy tính toán Toán học & STEAM",
+      weight: 3,
+      levels: [
+        { score: 3.0, label: "Xuất sắc (3.0đ)", desc: "Tính đúng tải trọng xe đạp thồ / tỷ lệ tiêu hao lương thực, giải thích rõ nguyên lý cơ học hoặc hình học." },
+        { score: 2.25, label: "Khá tốt (2.25đ)", desc: "Tính đúng kết quả chính, trình bày công thức rõ ràng nhưng giải thích vật lý còn ngắn." },
+        { score: 1.5, label: "Đạt (1.5đ)", desc: "Có hướng tính đúng nhưng nhầm đơn vị đo (tấn/kg) hoặc thiếu bước so sánh gánh bộ." },
+        { score: 0.75, label: "Cần bổ sung (0.75đ)", desc: "Chưa hoàn thành phép tính hoặc số liệu ước lượng cảm tính." }
+      ]
+    },
+    {
+      id: "R3",
+      name: "3. Tính hợp lý & An toàn Tuyến hậu cần",
+      weight: 2,
+      levels: [
+        { score: 2.0, label: "Xuất sắc (2.0đ)", desc: "Tuyến vạch đạt độ an toàn >= 80%, né vùng hỏa lực mở (Quốc lộ 41, Đồng trống) và tận dụng tán rừng/hào chữ chi." },
+        { score: 1.5, label: "Khá tốt (1.5đ)", desc: "Tuyến đi hợp lý ở phần lớn chặng nhưng còn đi qua 1 nút có rủi ro trung bình cao." },
+        { score: 1.0, label: "Đạt (1.0đ)", desc: "Chỉ chọn đường ngắn nhất theo đường thẳng, chưa xét góc tà quan sát từ Đồi D1." },
+        { score: 0.5, label: "Cần bổ sung (0.5đ)", desc: "Tuyến bị đứt đoạn hoặc đi xuyên trực tiếp vùng hỏa lực địch." }
+      ]
+    },
+    {
+      id: "R4",
+      name: "4. Báo cáo nhóm & Phản tư giới hạn mô hình",
+      weight: 2,
+      levels: [
+        { score: 2.0, label: "Xuất sắc (2.0đ)", desc: "Trình bày tự tin dưới 2 phút, chỉ ra được giới hạn thực tế (mưa bùn, bom đạn, mệt mỏi) so với giả định trên giấy." },
+        { score: 1.5, label: "Khá tốt (1.5đ)", desc: "Trình bày mạch lạc, trả lời được 1 câu hỏi phản biện từ nhóm bạn hoặc giáo viên." },
+        { score: 1.0, label: "Đạt (1.0đ)", desc: "Đọc lại số liệu trên phiếu, chưa nêu được yếu tố phản tư giới hạn mô hình." },
+        { score: 0.5, label: "Cần bổ sung (0.5đ)", desc: "Báo cáo rời rạc, vượt quá thời gian hoặc thiếu thành viên tham gia." }
+      ]
+    }
+  ]
+};
+
 if (typeof window !== 'undefined') {
   window.TOURS_DATA = TOURS_DATA;
   window.HOTSPOTS_DATA = HOTSPOTS_DATA;
+  window.CLASSROOM_KIT_DATA = CLASSROOM_KIT_DATA;
 }
