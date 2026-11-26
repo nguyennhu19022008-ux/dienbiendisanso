@@ -2509,6 +2509,179 @@
     }
   }
 
+  // --- 7C. 3D HISTORICAL ARTIFACTS SHOWCASE (SKETCHFAB VERIFIED + LEVEL 1 NOTES) ---
+  function initArtifacts3DShowcase() {
+    const list = window.ARTIFACTS_3D;
+    if (!Array.isArray(list) || list.length === 0) return;
+
+    const selectorContainer = document.getElementById('artifactsSelectorList');
+    const previewCover = document.getElementById('artifactPreviewCover');
+    const previewImg = document.getElementById('artifactPreviewImg');
+    const periodEl = document.getElementById('artifactPeriodLabel');
+    const titleEl = document.getElementById('artifactStageTitle');
+    const descEl = document.getElementById('artifactStageDesc');
+    const btnLaunch = document.getElementById('btnLaunchArtifact3D');
+    const iframeWrap = document.getElementById('artifactIframeWrap');
+    const sourceLabel = document.getElementById('artifactSourceLabel');
+    const noteButtonsWrap = document.getElementById('artifactNoteButtons');
+    const noteCard = document.getElementById('artifactNoteCard');
+    const factEl = document.getElementById('artifactHistoricalFact');
+    const extLink = document.getElementById('artifactExternalLink');
+
+    if (!selectorContainer || !noteButtonsWrap || !noteCard) return;
+
+    let activeIndex = 0;
+    let activeNoteIdx = 0;
+    let isViewerActive = false;
+
+    function renderActiveNote(animate) {
+      const artifact = list[activeIndex];
+      if (!artifact || !Array.isArray(artifact.annotations)) return;
+
+      noteButtonsWrap.innerHTML = artifact.annotations
+        .map((note, idx) => {
+          const isActive = idx === activeNoteIdx;
+          const cleanLabel = note.label.replace(/^\d+\.\s*/, '');
+          return `
+            <button
+              type="button"
+              role="tab"
+              aria-selected="${isActive ? 'true' : 'false'}"
+              class="artifact-note-btn ${isActive ? 'active' : ''}"
+              data-note-idx="${idx}"
+            >
+              <span class="note-idx-badge">${idx + 1}</span>
+              <span>${escapeHtml(cleanLabel)}</span>
+            </button>
+          `;
+        })
+        .join('');
+
+      noteButtonsWrap.querySelectorAll('.artifact-note-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const nIdx = parseInt(btn.getAttribute('data-note-idx'), 10);
+          if (isNaN(nIdx) || nIdx === activeNoteIdx) return;
+          if (window.SiteAudio) window.SiteAudio.playClick();
+          activeNoteIdx = nIdx;
+          renderActiveNote(true);
+        });
+      });
+
+      const currentNote = artifact.annotations[activeNoteIdx] || artifact.annotations[0];
+      if (currentNote) {
+        noteCard.classList.remove('is-animating');
+        noteCard.innerHTML = `<strong>${escapeHtml(currentNote.label)}:</strong><span>${escapeHtml(currentNote.detail)}</span>`;
+        if (animate) {
+          void noteCard.offsetWidth;
+          noteCard.classList.add('is-animating');
+        }
+      }
+    }
+
+    function renderViewportState() {
+      const artifact = list[activeIndex];
+      if (!artifact || !previewCover || !iframeWrap) return;
+
+      if (isViewerActive) {
+        previewCover.style.display = 'none';
+        iframeWrap.style.display = 'block';
+        iframeWrap.innerHTML = `
+          <iframe
+            title="${escapeHtml(artifact.title)}"
+            src="${escapeHtml(artifact.embedUrl)}?autostart=1&ui_theme=dark"
+            allow="autoplay; fullscreen; xr-spatial-tracking"
+            allowfullscreen
+          ></iframe>
+          <button type="button" id="btnCloseArtifact3D" class="btn-close-artifact-3d">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            <span>Tắt khung 3D</span>
+          </button>
+        `;
+        const btnClose = document.getElementById('btnCloseArtifact3D');
+        if (btnClose) {
+          btnClose.addEventListener('click', () => {
+            if (window.SiteAudio) window.SiteAudio.playClick();
+            isViewerActive = false;
+            iframeWrap.innerHTML = '';
+            renderViewportState();
+          });
+        }
+      } else {
+        iframeWrap.style.display = 'none';
+        iframeWrap.innerHTML = '';
+        previewCover.style.display = 'block';
+      }
+    }
+
+    function renderSelectedArtifact(animateNote) {
+      const artifact = list[activeIndex];
+      if (!artifact) return;
+
+      selectorContainer.querySelectorAll('.artifact-select-btn').forEach((btn, idx) => {
+        const isSelected = idx === activeIndex;
+        btn.classList.toggle('active', isSelected);
+        btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+      });
+
+      if (previewImg) {
+        previewImg.src = artifact.previewImage;
+        previewImg.alt = artifact.title;
+      }
+      if (periodEl) periodEl.textContent = artifact.periodLabel;
+      if (titleEl) titleEl.textContent = artifact.title;
+      if (descEl) descEl.textContent = artifact.description;
+      if (sourceLabel) sourceLabel.textContent = `Nguồn: Sketchfab (${artifact.author})`;
+      if (factEl) factEl.textContent = artifact.historicalFact;
+      if (extLink) extLink.href = artifact.sketchfabUrl;
+
+      renderViewportState();
+      renderActiveNote(animateNote);
+    }
+
+    selectorContainer.innerHTML = list
+      .map((item, idx) => `
+        <button
+          type="button"
+          role="option"
+          aria-selected="${idx === 0 ? 'true' : 'false'}"
+          class="artifact-select-btn ${idx === 0 ? 'active' : ''}"
+          data-artifact-idx="${idx}"
+        >
+          <div class="artifact-btn-meta">
+            <span class="artifact-grade-pill">${escapeHtml(item.gradeLabel)}</span>
+            <span class="artifact-notes-count">${item.annotations.length} ghi chú · 3D</span>
+          </div>
+          <h3>${escapeHtml(item.title)}</h3>
+          <p>${escapeHtml(item.subtitle)}</p>
+        </button>
+      `)
+      .join('');
+
+    selectorContainer.querySelectorAll('.artifact-select-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-artifact-idx'), 10);
+        if (isNaN(idx) || idx === activeIndex) return;
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        activeIndex = idx;
+        activeNoteIdx = 0;
+        renderSelectedArtifact(true);
+      });
+    });
+
+    if (btnLaunch) {
+      btnLaunch.addEventListener('click', () => {
+        if (window.SiteAudio) window.SiteAudio.playClick();
+        isViewerActive = true;
+        renderViewportState();
+      });
+    }
+
+    renderSelectedArtifact(false);
+  }
+
   // --- 8. INITIALIZE EVERYTHING ON DOM READY ---
   function init() {
     try { cacheElements(); } catch (err) { console.error('cacheElements error:', err); }
@@ -2524,6 +2697,7 @@
     try { initGalleryLightbox(); } catch (err) { console.error('initGalleryLightbox error:', err); }
     try { initSteamLab(); } catch (err) { console.error('initSteamLab error:', err); }
     try { initClassroomKit(); } catch (err) { console.error('initClassroomKit error:', err); }
+    try { initArtifacts3DShowcase(); } catch (err) { console.error('initArtifacts3DShowcase error:', err); }
     try { initHeaderNav(); } catch (err) { console.error('initHeaderNav error:', err); }
 
     try { updateTourView(currentTourIdx, false); } catch (err) { console.error('updateTourView error:', err); }

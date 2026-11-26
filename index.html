@@ -18,8 +18,8 @@
   <link rel="preload" as="image" href="images/him-lam-memorial.webp" />
 
   <!-- Base & Interactive Stylesheets -->
-  <link rel="stylesheet" href="assets/site_styles.css?v=202611172" />
-  <link rel="stylesheet" href="assets/interactive_enhancements.css?v=202611172" />
+  <link rel="stylesheet" href="assets/site_styles.css?v=20261126" />
+  <link rel="stylesheet" href="assets/interactive_enhancements.css?v=20261126" />
 </head>
 <body>
 
@@ -47,6 +47,7 @@
         <a href="#map">Bản đồ hệ thống</a>
         <a href="#steam">Phòng học STEAM</a>
         <a href="#classroom-kit">Gói trải nghiệm</a>
+        <a href="#artifacts-3d">Hiện vật 3D</a>
       </nav>
       <div style="display:flex; align-items:center; gap:0.75rem;">
         <button class="audio-toggle-btn" id="audio-toggle-btn" type="button" title="Bật/Tắt âm thanh hiệu ứng">
@@ -789,6 +790,110 @@
       </div>
     </section>
 
+    <!-- 3D Historical Artifacts Section (Sketchfab Verified + Level 1 Component Notes) -->
+    <section class="artifacts-3d-section" id="artifacts-3d">
+      <div class="section-shell">
+        <div class="section-heading split-heading">
+          <div>
+            <p class="eyebrow light"><span></span> Phòng hiện vật 3D tương tác · Tư liệu lịch sử đa chiều</p>
+            <h2>Kho hiện vật <em>lịch sử 3D</em></h2>
+          </div>
+          <p>Chọn hiện vật bên trái theo khối lớp và giai đoạn lịch sử, bấm khởi chạy để xoay 360° trực tiếp mô hình Sketchfab và xem 3 ghi chú cấu tạo kỹ thuật bên dưới.</p>
+        </div>
+
+        <div class="artifacts-layout">
+          <!-- Left Column (4 cols on desktop): Artifact Selector List -->
+          <div class="artifacts-selector" id="artifactsSelectorList" role="listbox" aria-label="Danh sách hiện vật lịch sử 3D">
+            <!-- Populated dynamically from window.ARTIFACTS_3D -->
+          </div>
+
+          <!-- Right Column (8 cols on desktop): Lazy-load 3D Viewport + Level 1 Annotations -->
+          <div class="artifact-stage-card">
+            <div class="artifact-viewport" id="artifactViewport">
+              <!-- Preview state shown by default (Lazy Load) -->
+              <div class="artifact-preview-cover" id="artifactPreviewCover">
+                <img
+                  id="artifactPreviewImg"
+                  src="https://media.sketchfab.com/models/d93798b2ee5d443fbc37ea9d46c38b23/thumbnails/cd8190106a2e4aeb812a5cd6f7193507/a12bc71db57949e19748260b326ccb8a.jpeg"
+                  alt="Súng Thần Công Cổ Thế Kỷ XVIII"
+                  onerror="this.onerror=null;this.src='images/d1.webp';"
+                />
+                <div class="artifact-preview-scrim"></div>
+                <div class="artifact-preview-overlay">
+                  <div class="artifact-rotate-badge" aria-hidden="true">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                      <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                      <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                  </div>
+                  <span class="artifact-period-tag" id="artifactPeriodLabel">Lịch sử Trung – Cận đại</span>
+                  <h3 id="artifactStageTitle">Súng Thần Công Cổ Thế Kỷ XVIII</h3>
+                  <p id="artifactStageDesc">Mẫu đại bác tiền nạp tiêu biểu giai đoạn thế kỷ XVII–XVIII với nòng đúc liền khối, quai treo cân bằng và bệ gỗ bốn bánh cơ động trên chiến lũy hoặc chiến thuyền.</p>
+                  <button type="button" id="btnLaunchArtifact3D" class="btn-launch-artifact">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <polygon points="6 4 20 12 6 20 6 4"></polygon>
+                    </svg>
+                    <span>Khởi chạy mô hình 3D</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Lazy iframe mount target (empty until activated) -->
+              <div class="artifact-iframe-wrap" id="artifactIframeWrap" style="display: none;"></div>
+            </div>
+
+            <!-- Level 1 Component Notes Bar directly under 3D stage -->
+            <div class="artifact-notes-panel">
+              <div class="artifact-notes-header">
+                <span class="notes-heading">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  <span>Ghi chú cấu tạo Mức 1 (chọn 1 · 2 · 3 để xem chi tiết):</span>
+                </span>
+                <span class="artifact-source-tag" id="artifactSourceLabel">Nguồn: Sketchfab (Kingy)</span>
+              </div>
+
+              <div class="artifact-note-tabs" id="artifactNoteButtons" role="tablist" aria-label="Các điểm ghi chú cấu tạo 1 2 3">
+                <!-- Buttons 1, 2, 3 populated dynamically -->
+              </div>
+
+              <div class="artifact-note-detail" id="artifactNoteCard" role="tabpanel">
+                <!-- Animated note card: label + detail -->
+              </div>
+
+              <div class="artifact-footer-meta">
+                <div class="artifact-history-fact">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <span id="artifactHistoricalFact">Tại Đại Việt, từ thời Hồ – Lê sơ đến triều Tây Sơn và triều Nguyễn, kỹ thuật đúc súng thần công đồng phát triển rực rỡ phục vụ phòng thủ thành lũy và thủy chiến.</span>
+                </div>
+                <a
+                  id="artifactExternalLink"
+                  href="https://sketchfab.com/3d-models/naval-cannon-18th-century-english-style-d93798b2ee5d443fbc37ea9d46c38b23"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="artifact-external-link"
+                >
+                  <span>Mở trên Sketchfab</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Research & Pedagogy Section -->
     <section class="research-section section-shell" id="research">
       <div class="research-intro">
@@ -906,8 +1011,8 @@
   </main>
 
   <!-- Core Interactive Scripts -->
-  <script src="assets/site_data.js?v=202611172"></script>
-  <script src="assets/site_audio.js?v=202611172"></script>
-  <script src="assets/interactive_engine.js?v=202611172"></script>
+  <script src="assets/site_data.js?v=20261126"></script>
+  <script src="assets/site_audio.js?v=20261126"></script>
+  <script src="assets/interactive_engine.js?v=20261126"></script>
 </body>
 </html>

@@ -292,11 +292,66 @@ suite('Tier 1: Feature Coverage — Production Build & dist/ Integrity', () => {
     });
   });
 
-  test('index.html references ?v=202611172 on all 5 assets in assets/', () => {
+  test('index.html references ?v=20261126 on all 5 assets in assets/', () => {
     const html = fs.readFileSync(path.join(PROJECT_ROOT, 'index.html'), 'utf8');
     REQUIRED_ASSETS.forEach(asset => {
-      assertIncludes(html, `assets/${asset}?v=202611172`, `index.html must reference assets/${asset}?v=202611172`);
+      assertIncludes(html, `assets/${asset}?v=20261126`, `index.html must reference assets/${asset}?v=20261126`);
     });
+  });
+
+  test('ARTIFACTS_3D & Sketchfab 3D Showcase export valid TypeScript contract, lazy-load iframe, and Level 1 annotations', () => {
+    const tsPath = path.join(PROJECT_ROOT, 'src', 'data', 'artifacts3dData.ts');
+    assert(fs.existsSync(tsPath), 'src/data/artifacts3dData.ts must exist');
+    const tsContent = fs.readFileSync(tsPath, 'utf8');
+    assertIncludes(tsContent, 'export interface ArtifactAnnotation', 'Must export ArtifactAnnotation interface');
+    assertIncludes(tsContent, 'export interface HistoricalArtifact3D', 'Must export HistoricalArtifact3D interface');
+    assertIncludes(tsContent, 'export const ARTIFACTS_3D: HistoricalArtifact3D[]', 'Must export typed ARTIFACTS_3D');
+
+    const env = createEnvironment(PROJECT_ROOT);
+    env.loadScripts();
+    const doc = env.document;
+    const list = env.window.ARTIFACTS_3D;
+
+    assert(Array.isArray(list) && list.length === 5, 'ARTIFACTS_3D must contain 5 verified historical 3D models');
+    list.forEach((item, idx) => {
+      assert(item.uid && item.uid.length === 32, `Artifact ${idx} must have valid 32-char Sketchfab UID`);
+      assertIncludes(item.embedUrl, `https://sketchfab.com/models/${item.uid}/embed`, `Artifact ${idx} embedUrl must match Sketchfab embed pattern`);
+      assert(item.author, `Artifact ${idx} must specify author`);
+      assert(Array.isArray(item.annotations) && item.annotations.length === 3, `Artifact ${idx} must have exactly 3 Level-1 annotations`);
+      item.annotations.forEach((note, nIdx) => {
+        assert(note.id && note.detail, `Artifact ${idx} note ${nIdx} must have id & detail`);
+        assertIncludes(note.label, `${nIdx + 1}.`, `Artifact ${idx} note ${nIdx} label must start with "${nIdx + 1}."`);
+      });
+    });
+
+    // Selector cards rendered
+    const selectBtns = doc.querySelectorAll('#artifactsSelectorList .artifact-select-btn');
+    assertEqual(selectBtns.length, 5, 'Must render 5 artifact selector cards');
+
+    // Lazy-load invariant: initially 0 iframes inside #artifactIframeWrap
+    const iframeWrap = doc.getElementById('artifactIframeWrap');
+    assertEqual(iframeWrap.querySelectorAll('iframe').length, 0, 'Must lazy-load iframe (0 iframes until user clicks launch)');
+
+    // Clicking note button 2 updates Level 1 explanation
+    const noteBtns = doc.querySelectorAll('#artifactNoteButtons .artifact-note-btn');
+    assertEqual(noteBtns.length, 3, 'Must render 3 Level-1 note buttons');
+    noteBtns[1].click();
+    assertIncludes(doc.getElementById('artifactNoteCard').textContent, list[0].annotations[1].detail, 'Clicking note 2 updates detail box');
+
+    // Clicking Launch mounts Sketchfab iframe cleanly and Close unmounts it
+    doc.getElementById('btnLaunchArtifact3D').click();
+    const mountedIframe = iframeWrap.querySelector('iframe');
+    assert(mountedIframe, 'Launching 3D must mount Sketchfab iframe');
+    assertIncludes(mountedIframe.getAttribute('src'), `${list[0].embedUrl}?autostart=1&ui_theme=dark`, 'Iframe src must load active Sketchfab embedUrl');
+    assertIncludes(mountedIframe.getAttribute('allow'), 'xr-spatial-tracking', 'Iframe allow must permit xr-spatial-tracking');
+
+    doc.getElementById('btnCloseArtifact3D').click();
+    assertEqual(iframeWrap.querySelectorAll('iframe').length, 0, 'Closing 3D viewer must unmount iframe');
+
+    // Selecting Pháo cao xạ 37mm switches active artifact and resets active note to 1
+    selectBtns[2].click();
+    assertIncludes(doc.getElementById('artifactStageTitle').textContent, '37mm', 'Selecting 37mm card updates stage title');
+    assertIncludes(doc.getElementById('artifactSourceLabel').textContent, list[2].author, 'Updates Sketchfab author attribution');
   });
 
   test('Classroom Kit (Gói trải nghiệm 45-60 phút) renders all 5 workflow steps, 3 missions, 4 situations, bike simulator, SVG route planner & live rubric', () => {
