@@ -2748,7 +2748,7 @@
       baseCamera = null;
 
       previewCover.style.display = 'none';
-      iframeWrap.style.display = 'block';
+      iframeWrap.style.display = 'flex';
 
       const useSdk = typeof window.Sketchfab === 'function';
       const initialSrcAttr = useSdk
@@ -2756,13 +2756,6 @@
         : `src="${escapeHtml(artifact.embedUrl)}?autostart=1&ui_theme=dark"`;
 
       iframeWrap.innerHTML = `
-        <iframe
-          id="artifactSketchfabFrame"
-          title="${escapeHtml(artifact.title)}"
-          ${initialSrcAttr}
-          allow="autoplay; fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
-          allowfullscreen
-        ></iframe>
         <div class="artifact-iframe-toolbar">
           <span class="artifact-focus-pill" id="artifactFocusHud">Đang tải góc nhìn 3D...</span>
           <div class="artifact-iframe-actions">
@@ -2778,6 +2771,13 @@
             </button>
           </div>
         </div>
+        <iframe
+          id="artifactSketchfabFrame"
+          title="${escapeHtml(artifact.title)}"
+          ${initialSrcAttr}
+          allow="autoplay; fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
+          allowfullscreen
+        ></iframe>
       `;
 
       const btnResetCam = document.getElementById('btnResetArtifactCam');

@@ -2406,30 +2406,29 @@ select:focus-visible {
   position: relative;
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #060e11;
 }
 
 .artifact-iframe-wrap iframe {
   width: 100%;
-  height: 100%;
+  flex: 1 1 0%;
+  min-height: 0;
   border: 0;
   display: block;
 }
 
 .artifact-iframe-toolbar {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  right: 12px;
-  z-index: 5;
+  position: relative;
+  flex-shrink: 0;
+  background: #081317;
+  border-bottom: 1px solid #ffffff1c;
+  padding: 10px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  pointer-events: none;
-}
-
-.artifact-iframe-toolbar > * {
-  pointer-events: auto;
 }
 
 .artifact-focus-pill {
