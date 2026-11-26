@@ -292,10 +292,10 @@ suite('Tier 1: Feature Coverage — Production Build & dist/ Integrity', () => {
     });
   });
 
-  test('index.html references ?v=20261126 on all 5 assets in assets/', () => {
+  test('index.html references ?v=202611262 on all 5 assets in assets/', () => {
     const html = fs.readFileSync(path.join(PROJECT_ROOT, 'index.html'), 'utf8');
     REQUIRED_ASSETS.forEach(asset => {
-      assertIncludes(html, `assets/${asset}?v=20261126`, `index.html must reference assets/${asset}?v=20261126`);
+      assertIncludes(html, `assets/${asset}?v=202611262`, `index.html must reference assets/${asset}?v=202611262`);
     });
   });
 

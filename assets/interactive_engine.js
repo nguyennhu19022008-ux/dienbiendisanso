@@ -2589,7 +2589,7 @@
           <iframe
             title="${escapeHtml(artifact.title)}"
             src="${escapeHtml(artifact.embedUrl)}?autostart=1&ui_theme=dark"
-            allow="autoplay; fullscreen; xr-spatial-tracking"
+            allow="autoplay; fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
             allowfullscreen
           ></iframe>
           <button type="button" id="btnCloseArtifact3D" class="btn-close-artifact-3d">

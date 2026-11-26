@@ -2616,10 +2616,30 @@ select:focus-visible {
   }
   .artifact-viewport {
     aspect-ratio: auto;
-    min-height: 360px;
+    min-height: 0;
+    height: auto;
+  }
+  .artifact-preview-cover {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .artifact-preview-cover img {
+    height: 220px;
+    opacity: 1;
+  }
+  .artifact-preview-scrim {
+    display: none;
   }
   .artifact-preview-overlay {
+    position: relative;
+    inset: auto;
+    background: #0d1c22;
     padding: 20px 16px 22px;
+    border-top: 1px solid #ffffff1a;
+  }
+  .artifact-iframe-wrap {
+    height: 340px;
   }
   .artifact-notes-panel {
     padding: 18px 16px 20px;
