@@ -2509,7 +2509,72 @@
     }
   }
 
-  // --- 7C. 3D HISTORICAL ARTIFACTS SHOWCASE (SKETCHFAB VERIFIED + LEVEL 1 NOTES) ---
+  // --- 7C. 3D HISTORICAL ARTIFACTS SHOWCASE (SKETCHFAB VIEWER API 1.12.1 + CAMERA FOCUS) ---
+  function normalizeVec3(v) {
+    const len = Math.hypot(v[0], v[1], v[2]);
+    if (len < 1e-6) return [0, 0, 1];
+    return [v[0] / len, v[1] / len, v[2] / len];
+  }
+
+  function crossVec3(a, b) {
+    return [
+      a[1] * b[2] - a[2] * b[1],
+      a[2] * b[0] - a[0] * b[2],
+      a[0] * b[1] - a[1] * b[0]
+    ];
+  }
+
+  function computeCameraPoseForAnnotation(baseEye, baseTarget, cameraView) {
+    if (!Array.isArray(baseEye) || !Array.isArray(baseTarget)) return null;
+    if (!cameraView) {
+      return { eye: baseEye.slice(), target: baseTarget.slice() };
+    }
+
+    const vx = baseEye[0] - baseTarget[0];
+    const vy = baseEye[1] - baseTarget[1];
+    const vz = baseEye[2] - baseTarget[2];
+    const baseDist = Math.max(0.01, Math.hypot(vx, vy, vz));
+
+    const forward0 = normalizeVec3([
+      baseTarget[0] - baseEye[0],
+      baseTarget[1] - baseEye[1],
+      baseTarget[2] - baseEye[2]
+    ]);
+    const worldUp = [0, 0, 1];
+    let right0 = crossVec3(forward0, worldUp);
+    if (Math.hypot(right0[0], right0[1], right0[2]) < 1e-4) {
+      right0 = [1, 0, 0];
+    } else {
+      right0 = normalizeVec3(right0);
+    }
+    const camUp0 = normalizeVec3(crossVec3(right0, forward0));
+
+    const panRight = typeof cameraView.panRight === 'number' ? cameraView.panRight : 0;
+    const panUp = typeof cameraView.panUp === 'number' ? cameraView.panUp : 0;
+
+    const newTarget = [
+      baseTarget[0] + right0[0] * (panRight * baseDist) + camUp0[0] * (panUp * baseDist),
+      baseTarget[1] + right0[1] * (panRight * baseDist) + camUp0[1] * (panUp * baseDist),
+      baseTarget[2] + right0[2] * (panRight * baseDist) + camUp0[2] * (panUp * baseDist)
+    ];
+
+    const az0 = Math.atan2(vy, vx);
+    const yawRad = ((cameraView.yawDeg || 0) * Math.PI) / 180;
+    const pitchDeg = Math.max(-75, Math.min(82, typeof cameraView.pitchDeg === 'number' ? cameraView.pitchDeg : 18));
+    const elRad = (pitchDeg * Math.PI) / 180;
+    const zoom = Math.max(0.35, Math.min(1.4, typeof cameraView.zoom === 'number' ? cameraView.zoom : 0.7));
+    const az = az0 + yawRad;
+    const dist = baseDist * zoom;
+
+    const newEye = [
+      newTarget[0] + dist * Math.cos(elRad) * Math.cos(az),
+      newTarget[1] + dist * Math.cos(elRad) * Math.sin(az),
+      newTarget[2] + dist * Math.sin(elRad)
+    ];
+
+    return { eye: newEye, target: newTarget };
+  }
+
   function initArtifacts3DShowcase() {
     const list = window.ARTIFACTS_3D;
     if (!Array.isArray(list) || list.length === 0) return;
@@ -2533,6 +2598,47 @@
     let activeIndex = 0;
     let activeNoteIdx = 0;
     let isViewerActive = false;
+    let mountedUid = null;
+    let sketchfabApi = null;
+    let baseCamera = null;
+    let pendingFocusOnReady = false;
+
+    function updateFocusHudLabel(text) {
+      const hud = document.getElementById('artifactFocusHud');
+      if (hud) hud.textContent = text;
+    }
+
+    function applyCameraFocus(noteIdx, durationSec) {
+      const artifact = list[activeIndex];
+      if (!artifact || !sketchfabApi || !baseCamera) return;
+      const note = artifact.annotations[noteIdx];
+      if (!note || !note.cameraView) return;
+
+      const pose = computeCameraPoseForAnnotation(
+        baseCamera.position,
+        baseCamera.target,
+        note.cameraView
+      );
+      if (!pose) return;
+
+      const dur = typeof durationSec === 'number' ? durationSec : 1.05;
+      try {
+        sketchfabApi.setCameraLookAt(pose.eye, pose.target, dur);
+        updateFocusHudLabel(`Góc nhìn: ${note.label}`);
+      } catch (err) {
+        console.warn('Sketchfab setCameraLookAt warning:', err);
+      }
+    }
+
+    function resetCameraToOverview() {
+      if (!sketchfabApi || !baseCamera) return;
+      try {
+        sketchfabApi.setCameraLookAt(baseCamera.position, baseCamera.target, 0.9);
+        updateFocusHudLabel('Góc nhìn: Toàn cảnh hiện vật');
+      } catch (err) {
+        console.warn('Sketchfab reset camera warning:', err);
+      }
+    }
 
     function renderActiveNote(animate) {
       const artifact = list[activeIndex];
@@ -2560,17 +2666,51 @@
       noteButtonsWrap.querySelectorAll('.artifact-note-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const nIdx = parseInt(btn.getAttribute('data-note-idx'), 10);
-          if (isNaN(nIdx) || nIdx === activeNoteIdx) return;
+          if (isNaN(nIdx)) return;
           if (window.SiteAudio) window.SiteAudio.playClick();
           activeNoteIdx = nIdx;
           renderActiveNote(true);
+          if (isViewerActive) {
+            if (sketchfabApi && baseCamera) {
+              applyCameraFocus(nIdx, 1.05);
+            } else {
+              pendingFocusOnReady = true;
+            }
+          }
         });
       });
 
       const currentNote = artifact.annotations[activeNoteIdx] || artifact.annotations[0];
       if (currentNote) {
         noteCard.classList.remove('is-animating');
-        noteCard.innerHTML = `<strong>${escapeHtml(currentNote.label)}:</strong><span>${escapeHtml(currentNote.detail)}</span>`;
+        noteCard.innerHTML = `
+          <div>
+            <strong>${escapeHtml(currentNote.label)}:</strong>
+            <span>${escapeHtml(currentNote.detail)}</span>
+          </div>
+          <button type="button" id="btnFocusPart3D" class="btn-focus-part-3d">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M1 4v6h6"></path>
+              <path d="M23 20v-6h-6"></path>
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+            </svg>
+            <span>${isViewerActive ? 'Xoay lại góc bộ phận này' : 'Khởi chạy & xoay 3D tới bộ phận này ↗'}</span>
+          </button>
+        `;
+        const btnFocusPart = document.getElementById('btnFocusPart3D');
+        if (btnFocusPart) {
+          btnFocusPart.addEventListener('click', () => {
+            if (window.SiteAudio) window.SiteAudio.playClick();
+            if (!isViewerActive) {
+              pendingFocusOnReady = true;
+              isViewerActive = true;
+              renderViewportState();
+              renderActiveNote(false);
+            } else if (sketchfabApi && baseCamera) {
+              applyCameraFocus(activeNoteIdx, 1.05);
+            }
+          });
+        }
         if (animate) {
           void noteCard.offsetWidth;
           noteCard.classList.add('is-animating');
@@ -2578,41 +2718,128 @@
       }
     }
 
+    function unmountViewerIframe() {
+      mountedUid = null;
+      sketchfabApi = null;
+      baseCamera = null;
+      pendingFocusOnReady = false;
+      if (iframeWrap) {
+        iframeWrap.style.display = 'none';
+        iframeWrap.innerHTML = '';
+      }
+      if (previewCover) previewCover.style.display = 'block';
+    }
+
     function renderViewportState() {
       const artifact = list[activeIndex];
       if (!artifact || !previewCover || !iframeWrap) return;
 
-      if (isViewerActive) {
-        previewCover.style.display = 'none';
-        iframeWrap.style.display = 'block';
-        iframeWrap.innerHTML = `
-          <iframe
-            title="${escapeHtml(artifact.title)}"
-            src="${escapeHtml(artifact.embedUrl)}?autostart=1&ui_theme=dark"
-            allow="autoplay; fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
-            allowfullscreen
-          ></iframe>
-          <button type="button" id="btnCloseArtifact3D" class="btn-close-artifact-3d">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-            <span>Tắt khung 3D</span>
-          </button>
-        `;
-        const btnClose = document.getElementById('btnCloseArtifact3D');
-        if (btnClose) {
-          btnClose.addEventListener('click', () => {
-            if (window.SiteAudio) window.SiteAudio.playClick();
-            isViewerActive = false;
-            iframeWrap.innerHTML = '';
-            renderViewportState();
+      if (!isViewerActive) {
+        unmountViewerIframe();
+        return;
+      }
+
+      if (mountedUid === artifact.uid && iframeWrap.querySelector('iframe')) {
+        return;
+      }
+
+      mountedUid = artifact.uid;
+      sketchfabApi = null;
+      baseCamera = null;
+
+      previewCover.style.display = 'none';
+      iframeWrap.style.display = 'block';
+
+      const useSdk = typeof window.Sketchfab === 'function';
+      const initialSrcAttr = useSdk
+        ? ''
+        : `src="${escapeHtml(artifact.embedUrl)}?autostart=1&ui_theme=dark"`;
+
+      iframeWrap.innerHTML = `
+        <iframe
+          id="artifactSketchfabFrame"
+          title="${escapeHtml(artifact.title)}"
+          ${initialSrcAttr}
+          allow="autoplay; fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
+          allowfullscreen
+        ></iframe>
+        <div class="artifact-iframe-toolbar">
+          <span class="artifact-focus-pill" id="artifactFocusHud">Đang tải góc nhìn 3D...</span>
+          <div class="artifact-iframe-actions">
+            <button type="button" id="btnResetArtifactCam" class="btn-reset-artifact-cam" title="Đưa mô hình về góc toàn cảnh">
+              <span>Góc toàn cảnh</span>
+            </button>
+            <button type="button" id="btnCloseArtifact3D" class="btn-close-artifact-3d">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              <span>Tắt khung 3D</span>
+            </button>
+          </div>
+        </div>
+      `;
+
+      const btnResetCam = document.getElementById('btnResetArtifactCam');
+      if (btnResetCam) {
+        btnResetCam.addEventListener('click', () => {
+          if (window.SiteAudio) window.SiteAudio.playClick();
+          resetCameraToOverview();
+        });
+      }
+
+      const btnClose = document.getElementById('btnCloseArtifact3D');
+      if (btnClose) {
+        btnClose.addEventListener('click', () => {
+          if (window.SiteAudio) window.SiteAudio.playClick();
+          isViewerActive = false;
+          unmountViewerIframe();
+          renderActiveNote(false);
+        });
+      }
+
+      const iframeEl = document.getElementById('artifactSketchfabFrame');
+      if (useSdk && iframeEl) {
+        try {
+          const client = new window.Sketchfab('1.12.1', iframeEl);
+          const targetUid = artifact.uid;
+          client.init(targetUid, {
+            autostart: 1,
+            ui_theme: 'dark',
+            ui_infos: 0,
+            ui_watermark: 0,
+            success: function (api) {
+              if (!isViewerActive || mountedUid !== targetUid) return;
+              sketchfabApi = api;
+              api.start();
+              api.addEventListener('viewerready', function () {
+                if (!isViewerActive || mountedUid !== targetUid) return;
+                api.getCameraLookAt(function (err, cam) {
+                  if (!err && cam && cam.position && cam.target) {
+                    baseCamera = {
+                      position: cam.position.slice(),
+                      target: cam.target.slice()
+                    };
+                    if (pendingFocusOnReady) {
+                      pendingFocusOnReady = false;
+                      applyCameraFocus(activeNoteIdx, 1.1);
+                    } else {
+                      updateFocusHudLabel('Góc toàn cảnh · Chọn 1 · 2 · 3 để xoay cận cảnh');
+                    }
+                  }
+                });
+              });
+            },
+            error: function () {
+              if (iframeEl && mountedUid === targetUid) {
+                iframeEl.src = `${artifact.embedUrl}?autostart=1&ui_theme=dark`;
+                updateFocusHudLabel('Chế độ xem tiêu chuẩn Sketchfab');
+              }
+            }
           });
+        } catch (err) {
+          iframeEl.src = `${artifact.embedUrl}?autostart=1&ui_theme=dark`;
         }
-      } else {
-        iframeWrap.style.display = 'none';
-        iframeWrap.innerHTML = '';
-        previewCover.style.display = 'block';
       }
     }
 
@@ -2667,6 +2894,7 @@
         if (window.SiteAudio) window.SiteAudio.playClick();
         activeIndex = idx;
         activeNoteIdx = 0;
+        pendingFocusOnReady = false;
         renderSelectedArtifact(true);
       });
     });
@@ -2676,6 +2904,7 @@
         if (window.SiteAudio) window.SiteAudio.playClick();
         isViewerActive = true;
         renderViewportState();
+        renderActiveNote(false);
       });
     }
 

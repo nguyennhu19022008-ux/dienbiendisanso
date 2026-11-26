@@ -2415,11 +2415,62 @@ select:focus-visible {
   display: block;
 }
 
-.btn-close-artifact-3d {
+.artifact-iframe-toolbar {
   position: absolute;
   top: 12px;
+  left: 12px;
   right: 12px;
   z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.artifact-iframe-toolbar > * {
+  pointer-events: auto;
+}
+
+.artifact-focus-pill {
+  background: rgba(10, 20, 24, 0.88);
+  border: 1px solid rgba(229, 201, 133, 0.45);
+  color: var(--gold-light, #e5c985);
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  max-width: 62%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artifact-iframe-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-reset-artifact-cam {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 20, 24, 0.9);
+  color: var(--gold-light, #e5c985);
+  border: 1px solid rgba(229, 201, 133, 0.45);
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.btn-reset-artifact-cam:hover {
+  background: var(--gold-light, #e5c985);
+  color: var(--ink, #0a1418);
+}
+
+.btn-close-artifact-3d {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -2436,6 +2487,26 @@ select:focus-visible {
 .btn-close-artifact-3d:hover {
   background: var(--red, #9c3b32);
   border-color: var(--red, #9c3b32);
+}
+
+.btn-focus-part-3d {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(229, 201, 133, 0.14);
+  color: var(--gold-light, #e5c985);
+  border: 1px solid rgba(229, 201, 133, 0.5);
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.btn-focus-part-3d:hover {
+  background: var(--gold-light, #e5c985);
+  color: var(--ink, #0a1418);
 }
 
 /* Level 1 Component Notes Bar */
@@ -2640,6 +2711,12 @@ select:focus-visible {
   }
   .artifact-iframe-wrap {
     height: 340px;
+  }
+  .artifact-focus-pill {
+    display: none;
+  }
+  .artifact-iframe-toolbar {
+    justify-content: flex-end;
   }
   .artifact-notes-panel {
     padding: 18px 16px 20px;

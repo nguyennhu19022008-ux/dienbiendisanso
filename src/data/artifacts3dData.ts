@@ -1,7 +1,16 @@
+export interface ArtifactCameraView {
+  yawDeg: number;
+  pitchDeg: number;
+  zoom: number;
+  panRight?: number;
+  panUp?: number;
+}
+
 export interface ArtifactAnnotation {
   id: string;
   label: string;
   detail: string;
+  cameraView?: ArtifactCameraView;
 }
 
 export interface HistoricalArtifact3D {
@@ -45,18 +54,21 @@ export const ARTIFACTS_3D: HistoricalArtifact3D[] = [
         label: '1. Nòng đồng đúc miệng loe & ngõng pháo',
         detail:
           'Phần miệng nòng loe giúp nạp thuốc phóng và đạn cầu từ phía trước; hai trục ngõng ngang thân pháo cho phép thay đổi góc ngẩng bắn tầm xa.',
+        cameraView: { yawDeg: -24, pitchDeg: 14, zoom: 0.62, panRight: -0.14, panUp: 0.04 },
       },
       {
         id: 'lifting-dolphins',
         label: '2. Hai quai cẩu cân bằng trọng tâm',
         detail:
           'Cặp quai đúc nổi trên lưng nòng pháo giúp buộc dây tời cẩu khẩu pháo nặng hàng tấn lắp đặt lên giá xe gỗ hoặc hầm pháo.',
+        cameraView: { yawDeg: 34, pitchDeg: 38, zoom: 0.56, panRight: 0.02, panUp: 0.09 },
       },
       {
         id: 'wooden-carriage',
         label: '3. Giá xe gỗ nẹp sắt & bốn bánh chịu lực',
         detail:
           'Khung gỗ bậc thang nẹp đai sắt chịu giật lùi khi khai hỏa, kết hợp dây chằng giảm chấn giúp kíp pháo thủ kéo pháo trở lại vị trí bắn.',
+        cameraView: { yawDeg: 78, pitchDeg: 16, zoom: 0.72, panRight: 0.08, panUp: -0.07 },
       },
     ],
   },
@@ -84,18 +96,21 @@ export const ARTIFACTS_3D: HistoricalArtifact3D[] = [
         label: '1. Tay lái nối cọc tre điều hướng',
         detail:
           'Dân công buộc thêm đoạn tre dài vào ghi-đông làm đòn bẩy giữ thăng bằng và điều hướng từ bên cạnh khi bao gạo chất cao quá đầu người.',
+        cameraView: { yawDeg: 38, pitchDeg: 24, zoom: 0.52, panRight: 0.16, panUp: 0.16 },
       },
       {
         id: 'reinforced-frame',
         label: '2. Khung sườn thép gia cố chịu tải nặng',
         detail:
           'Khung tam giác thép được nẹp gỗ cứng và quấn săm cao su ở vành bánh, cho phép chịu tải từ 200 đến hơn 300 kg liên tục trên đường đá lầy.',
+        cameraView: { yawDeg: -10, pitchDeg: 14, zoom: 0.68, panRight: 0.0, panUp: 0.02 },
       },
       {
         id: 'brake-carrier',
         label: '3. Thanh đẩy hậu & má phanh gỗ đổ dốc',
         detail:
           'Cọc tre chống dưới yên kết hợp miếng gỗ nghiến kẹp bổ sung vào lốp bánh sau giúp hãm tốc an toàn khi xuống các cung đèo dốc 15% ở Pha Đin.',
+        cameraView: { yawDeg: -62, pitchDeg: 18, zoom: 0.58, panRight: -0.18, panUp: -0.03 },
       },
     ],
   },
@@ -123,18 +138,21 @@ export const ARTIFACTS_3D: HistoricalArtifact3D[] = [
         label: '1. Nòng dài 37mm & loa giảm chớp đầu nòng',
         detail:
           'Tỷ lệ chiều dài nòng lớn tạo sơ tốc đầu đạn ~880 m/s, đạt trần bắn hiệu quả trên 3.000m; loa loe đầu nòng giúp giảm chớp sáng ban đêm.',
+        cameraView: { yawDeg: 30, pitchDeg: 15, zoom: 0.66, panRight: 0.22, panUp: 0.0 },
       },
       {
         id: 'five-round-clip',
         label: '2. Hộp tiếp đạn kẹp 5 viên nạp trên',
         detail:
           'Kíp nạp đạn thả kẹp 5 viên đạn 37x252mm liên tiếp từ phía trên khóa nòng, duy trì tốc độ bắn thực tế tới 80–120 phát/phút.',
+        cameraView: { yawDeg: -38, pitchDeg: 34, zoom: 0.50, panRight: -0.12, panUp: 0.12 },
       },
       {
         id: 'sight-handwheels',
         label: '3. Tay quay tầm – hướng & kính ngắm phòng không',
         detail:
           'Hai pháo thủ vận hành vô-lăng nâng hạ góc tà (tới +85°) và xoay vòng 360° theo đường ngắm đón đầu mục tiêu bay.',
+        cameraView: { yawDeg: -85, pitchDeg: 20, zoom: 0.56, panRight: -0.14, panUp: -0.05 },
       },
     ],
   },
@@ -162,18 +180,21 @@ export const ARTIFACTS_3D: HistoricalArtifact3D[] = [
         label: '1. Cụm 8 động cơ phản lực dưới cánh',
         detail:
           'Bốn cụm vỏ động cơ kép treo dưới hai cánh tạo lực đẩy lớn cho phép bay hành trình liên lục địa ở độ cao trên 10.000m và tỏa tín hiệu nhiệt mạnh.',
+        cameraView: { yawDeg: 26, pitchDeg: -8, zoom: 0.58, panRight: 0.14, panUp: -0.02 },
       },
       {
         id: 'swept-wing',
         label: '2. Sải cánh cụp 56,4m chứa khoang nhiên liệu',
         detail:
           'Cánh xuôi sau góc 35° diện tích lớn giúp giữ ổn định khí động ở tầng bình lưu, hai đầu cánh có bánh phụ giữ thăng bằng khi cất hạ cánh.',
+        cameraView: { yawDeg: 0, pitchDeg: 62, zoom: 0.88, panRight: 0.0, panUp: 0.0 },
       },
       {
         id: 'bomb-bay-ecm',
         label: '3. Khoang bom thân dài & hệ thống gây nhiễu',
         detail:
           'Thân dài gần 48,5m tích hợp khoang bom trung tâm sức chứa tới 27–31 tấn bom và các tổ hợp phát nhiễu radar – mục tiêu đánh chặn của tên lửa SAM-2.',
+        cameraView: { yawDeg: 118, pitchDeg: 16, zoom: 0.72, panRight: 0.05, panUp: 0.02 },
       },
     ],
   },
@@ -201,18 +222,21 @@ export const ARTIFACTS_3D: HistoricalArtifact3D[] = [
         label: '1. Pháo chính 100mm D-10T ổn định nòng',
         detail:
           'Trang bị bầu hút khói đặc trưng gần đầu nòng (biến thể T-54A) và cơ cấu ổn định dọc STP-1 giúp ngắm bắn chính xác khi đang hành tiến.',
+        cameraView: { yawDeg: 42, pitchDeg: 18, zoom: 0.68, panRight: 0.22, panUp: 0.08 },
       },
       {
         id: 'cast-turret',
         label: '2. Tháp pháo đúc bán cầu & sao vàng QĐNDVN',
         detail:
           'Thiết kế tháp pháo vòm tròn liền khối dày tới 200mm mặt trước, làm trượt góc đạn chống tăng địch và gắn súng máy phòng không 12,7mm trên nóc.',
+        cameraView: { yawDeg: -8, pitchDeg: 26, zoom: 0.56, panRight: 0.0, panUp: 0.08 },
       },
       {
         id: 'tracks-fuel',
         label: '3. Bộ xích thép 5 cặp bánh chịu nặng',
         detail:
           'Dải xích rộng 580mm phân tán áp suất lên đất bùn lầy kết hợp thùng dầu phụ phía đuôi xe giúp tăng tầm hành quân cơ động đường dài.',
+        cameraView: { yawDeg: -38, pitchDeg: 10, zoom: 0.66, panRight: -0.08, panUp: -0.06 },
       },
     ],
   },

@@ -292,10 +292,10 @@ suite('Tier 1: Feature Coverage — Production Build & dist/ Integrity', () => {
     });
   });
 
-  test('index.html references ?v=202611262 on all 5 assets in assets/', () => {
+  test('index.html references ?v=202611263 on all 5 assets in assets/', () => {
     const html = fs.readFileSync(path.join(PROJECT_ROOT, 'index.html'), 'utf8');
     REQUIRED_ASSETS.forEach(asset => {
-      assertIncludes(html, `assets/${asset}?v=202611262`, `index.html must reference assets/${asset}?v=202611262`);
+      assertIncludes(html, `assets/${asset}?v=202611263`, `index.html must reference assets/${asset}?v=202611263`);
     });
   });
 
@@ -321,6 +321,7 @@ suite('Tier 1: Feature Coverage — Production Build & dist/ Integrity', () => {
       item.annotations.forEach((note, nIdx) => {
         assert(note.id && note.detail, `Artifact ${idx} note ${nIdx} must have id & detail`);
         assertIncludes(note.label, `${nIdx + 1}.`, `Artifact ${idx} note ${nIdx} label must start with "${nIdx + 1}."`);
+        assert(note.cameraView && typeof note.cameraView.yawDeg === 'number', `Artifact ${idx} note ${nIdx} must define cameraView`);
       });
     });
 
@@ -342,11 +343,41 @@ suite('Tier 1: Feature Coverage — Production Build & dist/ Integrity', () => {
     doc.getElementById('btnLaunchArtifact3D').click();
     const mountedIframe = iframeWrap.querySelector('iframe');
     assert(mountedIframe, 'Launching 3D must mount Sketchfab iframe');
-    assertIncludes(mountedIframe.getAttribute('src'), `${list[0].embedUrl}?autostart=1&ui_theme=dark`, 'Iframe src must load active Sketchfab embedUrl');
+    assertIncludes(mountedIframe.getAttribute('src'), `${list[0].embedUrl}?autostart=1&ui_theme=dark`, 'Iframe fallback src must load active Sketchfab embedUrl');
     assertIncludes(mountedIframe.getAttribute('allow'), 'xr-spatial-tracking', 'Iframe allow must permit xr-spatial-tracking');
+    assert(doc.getElementById('btnResetArtifactCam'), 'Must render Góc toàn cảnh camera reset button');
 
     doc.getElementById('btnCloseArtifact3D').click();
     assertEqual(iframeWrap.querySelectorAll('iframe').length, 0, 'Closing 3D viewer must unmount iframe');
+
+    // Mock Sketchfab Viewer API 1.12.1 and verify setCameraLookAt invokes when clicking Level 1 notes
+    let camCalls = [];
+    env.window.Sketchfab = function(ver, iframe) {
+      this.init = function(uid, opts) {
+        const fakeApi = {
+          start: () => {},
+          addEventListener: (ev, cb) => { if (ev === 'viewerready') cb(); },
+          getCameraLookAt: (cb) => cb(null, { position: [100, 0, 20], target: [0, 0, 0] }),
+          setCameraLookAt: (eye, target, dur) => { camCalls.push({ eye, target, dur }); }
+        };
+        opts.success(fakeApi);
+      };
+    };
+
+    // Clicking "Khởi chạy & xoay 3D tới bộ phận này" mounts viewer and rotates camera immediately to note 2
+    doc.getElementById('btnFocusPart3D').click();
+    assertEqual(camCalls.length, 1, 'Launching via note focus button must invoke setCameraLookAt');
+
+    // Clicking note 3 while viewer active triggers smooth camera move to note 3
+    doc.querySelectorAll('#artifactNoteButtons .artifact-note-btn')[2].click();
+    assertEqual(camCalls.length, 2, 'Clicking note 3 while 3D active must invoke setCameraLookAt');
+
+    // Clicking reset camera returns to baseCamera [100, 0, 20]
+    doc.getElementById('btnResetArtifactCam').click();
+    assertEqual(camCalls.length, 3, 'Reset camera button must invoke setCameraLookAt');
+    assertEqual(camCalls[2].eye[0], 100, 'Reset camera must return to baseCamera eye');
+
+    doc.getElementById('btnCloseArtifact3D').click();
 
     // Selecting Pháo cao xạ 37mm switches active artifact and resets active note to 1
     selectBtns[2].click();
